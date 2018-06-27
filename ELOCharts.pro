@@ -1,4 +1,4 @@
-QT += quick
+QT += core quick serialport charts
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -13,7 +13,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp
+        main.cpp \
+        protocolmanager.cpp \
+        dev/serialhandler.cpp \
+        coreserver.cpp \
+    qml/qmlwrapper.cpp \
+    protocoldata.cpp
+
+HEADERS += \
+        protocolmanager.h \
+        coreserver.h \
+        dev/serialhandler.h \
+    qml/qmlwrapper.h \
+    protocoldata.h
 
 RESOURCES += qml.qrc
 
