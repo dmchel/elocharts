@@ -3,6 +3,8 @@
 #include "qml/qmlwrapper.h"
 #include "coreserver.h"
 
+const QString progVersion = "ver. 0.5";
+
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);

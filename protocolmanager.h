@@ -17,13 +17,14 @@ public:
     void clear();
 
 public:
+    quint8 cmd;
     quint8 id;
     union u_data {
         quint8 bytes[4];
         quint16 halfwords[2];
         quint32 word;
     } data;
-    bool fExtended = false;
+    //bool fExtended = false;
 };
 
 /**
@@ -34,9 +35,17 @@ class ProtocolManager : public QObject
 {
     Q_OBJECT
 public:
+    enum Commands {
+        GET_PARAM = 0x1,
+        SET_PARAM = 0x2,
+        SEND_PARAM = 0x4,
+        CONFIRM_PARAM = 0x8
+    };
+
     enum class ReceiverState {
         FRAME_ERROR,
         WAIT_START_FRAME,
+        WAIT_CMD,
         WAIT_ID,
         DATA_FLOW,
         WAIT_CRC
@@ -83,6 +92,7 @@ private:
     void onlineTimeout();
     void dataHandler();
     ReceiverState checkStartMark(quint8 byte);
+    ReceiverState checkCmd(quint8 byte);
     ReceiverState checkId(quint8 byte);
     ReceiverState checkData(quint8 byte);
     ReceiverState checkCrc(quint8 byte);
@@ -106,7 +116,7 @@ private:
 
     enum {
         FS_START = 0x11,     //символ "начало стандартного пакета"
-        FE_START = 0x12      //символ "начало расширенного пакета с CRC"
+        FE_START = 0x12      //символ "начало расширенного пакета с CRC" (не используется)
     };
 
     const int DATA_SIZE = 4;

@@ -4,6 +4,7 @@
 //#include "protocolmanager.h"
 #include "protocoldata.h"
 
+#include <QThread>
 #include <QDebug>
 
 CoreServer::CoreServer(QObject *parent) : QObject(parent)
@@ -18,7 +19,6 @@ CoreServer::~CoreServer()
 
 /**
  * @brief CoreServer::openSerialPort
- *
  * @param name
  */
 void CoreServer::openSerialPort(const QString &name)
@@ -29,11 +29,17 @@ void CoreServer::openSerialPort(const QString &name)
     }
     protocol = new ProtocolManager();
     serialDevice = new SerialHandler(name);
+    QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    if(ports.isEmpty()) {
+        qDebug << "Serial ports not found!";
+        return;
+    }
     SerialHandler::SerialSettings settings;
     settings.baudRate = QSerialPort::Baud115200;
     settings.dataBits = QSerialPort::Data8;
     settings.flowControl = QSerialPort::NoFlowControl;
     settings.name = name;
+    //settings.name = ports.at(0).portName();
     settings.parity = QSerialPort::EvenParity;
     settings.stopBits = QSerialPort::OneStop;
     serialDevice->setSettings(settings);
@@ -41,20 +47,21 @@ void CoreServer::openSerialPort(const QString &name)
     QThread *serialThread = new QThread();
     serialDevice->moveToThread(serialThread);
     protocol->moveToThread(serialThread);
-
+    //thread control
     connect(serialThread, &QThread::started, serialDevice, &SerialHandler::start);
-    connect(serialDevice, &SerialHandler::finished, serialThread, &QThread::quit);
-    connect(serialDevice, &SerialHandler::opened, this, &CoreServer::onOpenSerialPort);
-    connect(serialDevice, &SerialHandler::finished, this, &CoreServer::onCloseSerialPort);
-    connect(this, &CoreServer::stopSerial, serialDevice, &SerialHandler::stop);
-    connect(serialDevice, &SerialHandler::finished, serialDevice, &SerialHandler::deleteLater);
     connect(serialThread, &QThread::finished, serialThread, &QThread::deleteLater);
-    connect(serialDevice, &SerialHandler::dataArrived, protocol, &ProtocolManager::receiveData);
+    connect(serialDevice, &SerialHandler::opened, this, &CoreServer::onOpenSerialPort);
+    connect(serialDevice, &SerialHandler::finished, serialThread, &QThread::quit);
+    connect(serialDevice, &SerialHandler::finished, protocol, &ProtocolManager::stop);
+    connect(serialDevice, &SerialHandler::finished, this, &CoreServer::onCloseSerialPort);
+    connect(serialDevice, &SerialHandler::finished, serialDevice, &SerialHandler::deleteLater);
+    connect(this, &CoreServer::stopSerial, serialDevice, &SerialHandler::stop);
     connect(protocol, &ProtocolManager::finished, serialThread, &QThread::quit);
     connect(protocol, &ProtocolManager::finished, protocol, &ProtocolManager::deleteLater);
+    //data exchange
+    connect(serialDevice, &SerialHandler::dataArrived, protocol, &ProtocolManager::receiveData);
     connect(protocol, &ProtocolManager::transmitData, serialDevice, &SerialHandler::putData);
     //connect(protocol, &ProtocolManager::sendCommStatistic, this, &CoreServer::updateConnectionInfo);
-
     connect(dataVault, &ProtocolData::generatePacket, protocol, &ProtocolManager::sendPacket);
     connect(protocol, &ProtocolManager::packRecieved, dataVault, &ProtocolData::packetHandler);
 

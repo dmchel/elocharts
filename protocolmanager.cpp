@@ -11,9 +11,10 @@ SerialPacket::SerialPacket(quint8 _id, quint32 _data)
 
 void SerialPacket::clear()
 {
+    cmd = 0;
     id = 0;
     data.word = 0;
-    fExtended = false;
+    //fExtended = false;
 }
 
 ProtocolManager::ProtocolManager(QObject *parent) : QObject(parent)
@@ -89,17 +90,15 @@ void ProtocolManager::receiveData(const QByteArray &data)
 QByteArray ProtocolManager::sendPacket(const SerialPacket &pack)
 {
     QByteArray dataToSend;
-    if(pack.fExtended) {
-        dataToSend.append(FE_START);
-    }
-    else {
-        dataToSend.append(FS_START);
-    }
+    dataToSend.append(FS_START);
+    dataToSend.append(pack.cmd);
     dataToSend.append(pack.id);
-    for(int i = 0; i < DATA_SIZE; i++) {
-        dataToSend.append(pack.data.bytes[i]);
+    if(pack.cmd == SET_PARAM) {
+        for(int i = 0; i < DATA_SIZE; i++) {
+            dataToSend.append(pack.data.bytes[i]);
+        }
+        dataToSend.append(computeCRC(pack));
     }
-    dataToSend.append(computeCRC(pack));
     emit transmitData(dataToSend);
     statistic.txBytes += dataToSend.size();
     statistic.txPackets++;
@@ -147,6 +146,9 @@ void ProtocolManager::dataHandler()
         case ReceiverState::WAIT_START_FRAME:
             rxState = checkStartMark(c);
             break;
+        case ReceiverState::WAIT_CMD:
+            rxState = checkCmd(c);
+            break;
         case ReceiverState::WAIT_ID:
             rxState = checkId(c);
             break;
@@ -169,26 +171,26 @@ void ProtocolManager::dataHandler()
 
 ProtocolManager::ReceiverState ProtocolManager::checkStartMark(quint8 byte)
 {
-    //standard pack without crc
     if(byte == FS_START) {
-        currPack.fExtended = false;
-        return ReceiverState::WAIT_ID;
-    }
-    //extended pack with crc
-    else if(byte == FE_START) {
-        currPack.fExtended = true;
-        return ReceiverState::WAIT_ID;
+        return ReceiverState::WAIT_CMD;
     }
     return ReceiverState::FRAME_ERROR;
 }
 
-ProtocolManager::ReceiverState ProtocolManager::checkId(quint8 byte)
+ProtocolManager::ReceiverState ProtocolManager::checkCmd(quint8 byte)
 {
-    //maybe not?
-    if((byte == FS_START) || (byte == FE_START)) {
+    if((byte == SEND_PARAM) || (byte == CONFIRM_PARAM)) {
+        currPack.cmd = byte;
+        return ReceiverState::WAIT_ID;
+    }
+    else {
         onFormatError();
         return ReceiverState::FRAME_ERROR;
     }
+}
+
+ProtocolManager::ReceiverState ProtocolManager::checkId(quint8 byte)
+{
     currPack.id = byte;
     dataCounter = 0;
     return ReceiverState::DATA_FLOW;
@@ -201,7 +203,7 @@ ProtocolManager::ReceiverState ProtocolManager::checkData(quint8 byte)
     dataCounter++;
     if(dataCounter == DATA_SIZE) {
         //wait crc for extended packs
-        if(currPack.fExtended) {
+        if(currPack.cmd == CONFIRM_PARAM) {
             state = ReceiverState::WAIT_CRC;
         }
         //standard pack without crc - it's done
@@ -228,15 +230,14 @@ ProtocolManager::ReceiverState ProtocolManager::checkCrc(quint8 byte)
 quint8 ProtocolManager::computeCRC(const SerialPacket &pack)
 {
     quint8 crc = 0;
-    if(pack.fExtended) {
-        QByteArray crcData;
-        crcData.append(FE_START);
-        crcData.append(pack.id);
-        for(int i = 0; i < 4; i++) {
-            crcData.append(pack.data.bytes[i]);
-        }
-        crc = crc8_xxx(reinterpret_cast<quint8*>(crcData.data()), crcData.size());
+    QByteArray crcData;
+    crcData.append(FS_START);
+    crcData.append(pack.cmd);
+    crcData.append(pack.id);
+    for(int i = 0; i < 4; i++) {
+        crcData.append(pack.data.bytes[i]);
     }
+    crc = crc8_xxx(reinterpret_cast<quint8*>(crcData.data()), crcData.size());
     return crc;
 }
 

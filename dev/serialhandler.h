@@ -1,7 +1,8 @@
 #ifndef SERIALHANDLER_H
 #define SERIALHANDLER_H
 
-#include <QSerialPort>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
 
 /**
  * @brief The SerialHandler class
