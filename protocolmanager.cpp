@@ -209,7 +209,7 @@ ProtocolManager::ReceiverState ProtocolManager::checkData(quint8 byte)
         //standard pack without crc - it's done
         else {
             emit packRecieved(currPack);
-            res = ReceiverState::WAIT_START_FRAME;
+            state = ReceiverState::WAIT_START_FRAME;
             onValidPackReceive();
         }
     }

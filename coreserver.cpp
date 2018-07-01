@@ -10,6 +10,8 @@
 CoreServer::CoreServer(QObject *parent) : QObject(parent)
 {
     dataVault = new ProtocolData(this);
+
+    connect(dataVault, &ProtocolData::dataArrived, this, &CoreServer::onNewChartData);
 }
 
 CoreServer::~CoreServer()
@@ -31,7 +33,7 @@ void CoreServer::openSerialPort(const QString &name)
     serialDevice = new SerialHandler(name);
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
     if(ports.isEmpty()) {
-        qDebug << "Serial ports not found!";
+        qDebug() << "Serial ports not found!";
         return;
     }
     SerialHandler::SerialSettings settings;
@@ -89,5 +91,10 @@ void CoreServer::onCloseSerialPort()
     protocol = Q_NULLPTR;
     serialDevice = Q_NULLPTR;
     qDebug() << "Serial port closed.";
+}
+
+void CoreServer::onNewChartData(QPointF point)
+{
+    emit chartData(point.x(), point.y());
 }
 

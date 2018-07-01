@@ -1,4 +1,4 @@
-QT += core quick serialport charts
+QT += core quick widgets serialport charts
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -18,14 +18,16 @@ SOURCES += \
         dev/serialhandler.cpp \
         coreserver.cpp \
     qml/qmlwrapper.cpp \
-    protocoldata.cpp
+    protocoldata.cpp \
+    gui/chartwidget.cpp
 
 HEADERS += \
         protocolmanager.h \
         coreserver.h \
         dev/serialhandler.h \
     qml/qmlwrapper.h \
-    protocoldata.h
+    protocoldata.h \
+    gui/chartwidget.h
 
 RESOURCES += qml.qrc
 

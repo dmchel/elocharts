@@ -1,12 +1,16 @@
 #include "protocoldata.h"
 
-#include <QPointF>
+#include <Qtimer>
 #include <QTime>
 #include <chrono>
 
 ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
 {
-
+    testTimer = new QTimer(this);
+    testTimer->setTimerType(Qt::PreciseTimer);
+    connect(testTimer, &QTimer::timeout, this, &ProtocolData::onTestTimerTimeout);
+    testTimer->start(10);
+    qsrand(42);
 }
 
 /**
@@ -51,13 +55,14 @@ void ProtocolData::requesetParamFromDevice(int id)
 
 void ProtocolData::saveParam(int id, quint32 val)
 {
-    //quint64 t = QTime::currentTime().msecsSinceStartOfDay();
-    quint64 t = duration_cast<microseconds>(std::chrono::steady_clock::now());
+    quint64 t = QTime::currentTime().msecsSinceStartOfDay();
+    QPointF point = QPointF(0, val);
+    //quint64 t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now());
     bool fExist = false;
     for(auto param : params) {
         if(param.id == id) {
-            qint64 t = duration_cast<microseconds>(std::chrono::steady_clock::now());
-            param.dots.append(QPointF(t - param.timestamp, val));
+            point = QPointF(t - param.timestamp, val);
+            param.dots.append(point);
             param.timestamp = t;
             fExist = true;
             break;
@@ -67,7 +72,13 @@ void ProtocolData::saveParam(int id, quint32 val)
         RawData data;
         data.id = id;
         data.timestamp = t;
-        data.dots.append(QPointF(0, val));
+        data.dots.append(point);
         params.append(data);
     }
+    emit dataArrived(point);
+}
+
+void ProtocolData::onTestTimerTimeout()
+{
+    saveParam(1, (qrand() % 1000));
 }

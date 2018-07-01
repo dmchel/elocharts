@@ -2,6 +2,7 @@
 #define CORESERVER_H
 
 #include <QObject>
+#include <QPointF>
 
 class ProtocolManager;
 class SerialHandler;
@@ -23,9 +24,14 @@ signals:
     void connected();
     void disconnected();
 
+    void chartData(qreal x, qreal y);
+
 public slots:
     void openSerialPort(const QString &name);
     void closeSerialPort();
+
+private slots:
+    void onNewChartData(QPointF point);
 
 private:
     void onOpenSerialPort();
