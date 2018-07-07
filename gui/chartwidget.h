@@ -11,8 +11,6 @@ QT_CHARTS_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
-class XYSeriesIODevice;
-
 class ChartWidget : public QWidget
 {
     Q_OBJECT
@@ -20,6 +18,10 @@ class ChartWidget : public QWidget
 public:
     ChartWidget(QWidget *parent = 0);
     ~ChartWidget();
+
+protected:
+    void mouseMoveEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
 
 public slots:
     void addDataToChart(qreal x, qreal y);

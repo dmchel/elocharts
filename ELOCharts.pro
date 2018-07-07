@@ -19,7 +19,8 @@ SOURCES += \
         coreserver.cpp \
     qml/qmlwrapper.cpp \
     protocoldata.cpp \
-    gui/chartwidget.cpp
+    gui/chartwidget.cpp \
+    gui/mainwindow.cpp
 
 HEADERS += \
         protocolmanager.h \
@@ -27,7 +28,8 @@ HEADERS += \
         dev/serialhandler.h \
     qml/qmlwrapper.h \
     protocoldata.h \
-    gui/chartwidget.h
+    gui/chartwidget.h \
+    gui/mainwindow.h
 
 RESOURCES += qml.qrc
 
@@ -41,3 +43,6 @@ QML_DESIGNER_IMPORT_PATH =
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+FORMS += \
+    gui/mainwindow.ui

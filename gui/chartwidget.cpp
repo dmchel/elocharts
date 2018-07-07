@@ -14,7 +14,7 @@ ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent)
     m_series = new QLineSeries;
     m_chart->addSeries(m_series);
     QValueAxis *axisX = new QValueAxis;
-    axisX->setRange(0, 20000);
+    axisX->setRange(0, 100000);
     axisX->setLabelFormat("%g");
     axisX->setTitleText("t, ms");
     QValueAxis *axisY = new QValueAxis;
@@ -24,6 +24,8 @@ ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent)
     m_chart->setAxisY(axisY, m_series);
     m_chart->legend()->hide();
     m_chart->setTitle("ELO Chart data");
+    //m_chart->setBackgroundBrush(QColor(64, 64, 64));
+    //m_chart->setTitleBrush(QColor(Qt::blue));
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(chartView);
@@ -33,6 +35,28 @@ ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent)
 ChartWidget::~ChartWidget()
 {
     delete m_chart;
+}
+
+void ChartWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    event->ignore();
+}
+
+void ChartWidget::wheelEvent(QWheelEvent *event)
+{
+    QPoint numPixels = event->pixelDelta();
+    QPoint numDegrees = event->angleDelta() / 8;
+
+    if (!numPixels.isNull()) {
+        //this->scroll(numPixels.rx(), numPixels.ry());
+        m_chart->scroll(numPixels.ry(), numPixels.ry());
+    } else if (!numDegrees.isNull()) {
+        QPoint numSteps = numDegrees;
+        //this->scroll(numSteps.rx(), numSteps.ry());
+        m_chart->scroll(numSteps.ry(), numSteps.ry());
+    }
+
+    event->accept();
 }
 
 void ChartWidget::addDataToChart(qreal x, qreal y)

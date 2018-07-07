@@ -1,15 +1,16 @@
 #include "protocoldata.h"
 
-#include <Qtimer>
+#include <QTimer>
 #include <QTime>
 #include <chrono>
+#include <QDebug>
 
 ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
 {
     testTimer = new QTimer(this);
     testTimer->setTimerType(Qt::PreciseTimer);
     connect(testTimer, &QTimer::timeout, this, &ProtocolData::onTestTimerTimeout);
-    testTimer->start(10);
+    testTimer->start(100);
     qsrand(42);
 }
 
@@ -57,6 +58,7 @@ void ProtocolData::saveParam(int id, quint32 val)
 {
     quint64 t = QTime::currentTime().msecsSinceStartOfDay();
     QPointF point = QPointF(0, val);
+    qDebug() << t << val;
     //quint64 t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now());
     bool fExist = false;
     for(auto param : params) {
