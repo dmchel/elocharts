@@ -34,7 +34,7 @@ private slots:
     void onTestTimerTimeout();
 
 private:
-    void saveParam(int id, quint32 val);
+    void saveParam(int id, qint32 val);
 
 private:
     QVector<RawData> params;

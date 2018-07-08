@@ -11,6 +11,22 @@ QT_CHARTS_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
+/*class LiveChart : public QChart
+{
+    Q_OBJECT
+
+public:
+    LiveChart(QObject *parent = 0);
+    ~LiveChart();
+
+protected:
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
+
+};*/
+
 class ChartWidget : public QWidget
 {
     Q_OBJECT
@@ -20,6 +36,8 @@ public:
     ~ChartWidget();
 
 protected:
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
 
@@ -29,8 +47,11 @@ public slots:
     void clearChart();
 
 private:
-    QChart *m_chart;
-    QLineSeries *m_series;
+    QChart *m_chart = Q_NULLPTR;
+    QLineSeries *m_series = Q_NULLPTR;
+    QPoint prevMousePos = QPoint(0, 0);
+    bool fLeftButton = false;
+    QPointF prevPoint = QPoint(0.0, 0.0);
 };
 
 #endif // GUICHARTWIDGET_H

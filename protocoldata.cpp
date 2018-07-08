@@ -3,6 +3,7 @@
 #include <QTimer>
 #include <QTime>
 #include <chrono>
+#include <math.h>
 #include <QDebug>
 
 ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
@@ -54,11 +55,11 @@ void ProtocolData::requesetParamFromDevice(int id)
  * Private methods
  */
 
-void ProtocolData::saveParam(int id, quint32 val)
+void ProtocolData::saveParam(int id, qint32 val)
 {
     quint64 t = QTime::currentTime().msecsSinceStartOfDay();
     QPointF point = QPointF(0, val);
-    qDebug() << t << val;
+    //qDebug() << t << val;
     //quint64 t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now());
     bool fExist = false;
     for(auto param : params) {
@@ -82,5 +83,7 @@ void ProtocolData::saveParam(int id, quint32 val)
 
 void ProtocolData::onTestTimerTimeout()
 {
-    saveParam(1, (qrand() % 1000));
+    quint64 t = QTime::currentTime().msecsSinceStartOfDay();
+    saveParam(1, 50 * sin(0.05 * t));
+    //saveParam(1, (qrand() % 1000));
 }

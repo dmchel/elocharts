@@ -13,23 +13,29 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp \
-        protocolmanager.cpp \
-        dev/serialhandler.cpp \
-        coreserver.cpp \
+    main.cpp \
+    protocolmanager.cpp \
+    dev/serialhandler.cpp \
+    coreserver.cpp \
     qml/qmlwrapper.cpp \
     protocoldata.cpp \
     gui/chartwidget.cpp \
-    gui/mainwindow.cpp
+    gui/mainwindow.cpp \
+    settingswizard.cpp \
+    recordModel/chartrecordmodel.cpp \
+    recordModel/customrecorddelegate.cpp
 
 HEADERS += \
-        protocolmanager.h \
-        coreserver.h \
-        dev/serialhandler.h \
+    protocolmanager.h \
+    coreserver.h \
+    dev/serialhandler.h \
     qml/qmlwrapper.h \
     protocoldata.h \
     gui/chartwidget.h \
-    gui/mainwindow.h
+    gui/mainwindow.h \
+    settingswizard.h \
+    recordModel/chartrecordmodel.h \
+    recordModel/customrecorddelegate.h
 
 RESOURCES += qml.qrc
 

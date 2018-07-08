@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         return -1;
     }*/
     ChartWidget chart;
-    chart.setMouseTracking(true);
+    //chart.setMouseTracking(true);
     //QMLWrapper wrap(engine.rootObjects().at(0));
     CoreServer server;
 
