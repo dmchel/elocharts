@@ -3,29 +3,28 @@
 
 #include <QtWidgets/QWidget>
 #include <QtCharts/QChartGlobal>
-
-QT_CHARTS_BEGIN_NAMESPACE
-class QLineSeries;
-class QChart;
-QT_CHARTS_END_NAMESPACE
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
 
 QT_CHARTS_USE_NAMESPACE
 
-/*class LiveChart : public QChart
+class LiveChart : public QChartView
 {
     Q_OBJECT
 
 public:
-    LiveChart(QObject *parent = 0);
-    ~LiveChart();
+    LiveChart(QChart *chart, QWidget *parent = Q_NULLPTR);
 
-protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
 
-};*/
+private:
+    QPoint prevMousePos = QPoint(0, 0);
+    bool fLeftButton = false;
+
+};
 
 class ChartWidget : public QWidget
 {
@@ -47,10 +46,10 @@ public slots:
     void clearChart();
 
 private:
-    QChart *m_chart = Q_NULLPTR;
+    LiveChart *liveChart = Q_NULLPTR;
+    QChart *mainChart = Q_NULLPTR;
+    QList<QLineSeries> seriesList;
     QLineSeries *m_series = Q_NULLPTR;
-    QPoint prevMousePos = QPoint(0, 0);
-    bool fLeftButton = false;
     QPointF prevPoint = QPoint(0.0, 0.0);
     qreal totalChartTime = 0.0;
 };

@@ -24,7 +24,8 @@ SOURCES += \
     settingswizard.cpp \
     recordModel/chartrecordmodel.cpp \
     recordModel/customrecorddelegate.cpp \
-    console.cpp
+    console.cpp \
+    gui/createparamdialog.cpp
 
 HEADERS += \
     protocolmanager.h \
@@ -37,7 +38,8 @@ HEADERS += \
     settingswizard.h \
     recordModel/chartrecordmodel.h \
     recordModel/customrecorddelegate.h \
-    console.h
+    console.h \
+    gui/createparamdialog.h
 
 RESOURCES += qml.qrc
 
@@ -53,4 +55,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 FORMS += \
-    gui/mainwindow.ui
+    gui/mainwindow.ui \
+    gui/createparamdialog.ui
