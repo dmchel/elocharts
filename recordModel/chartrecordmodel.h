@@ -2,42 +2,52 @@
 #define LEDRECORDMODEL_H
 
 #include <QAbstractTableModel>
+#include <QColor>
 #include <QString>
 #include <QList>
 
-class LedRecordItem
+class ParamDataItem
 {
 public:
-    LedRecordItem();
-    LedRecordItem(int num_, int timestamp_, int duration_,
-                  QString color, QString data);
+    ParamDataItem();
+    ParamDataItem(int pId, const QString &pName, int pPeriod,
+                  qreal pFactor = 1.0, qreal pShift = 0.0, qreal pValue = 0.0,
+                  int pRawValue = 0, bool isActive = false, bool fGraph = false,
+                  QColor color = QColor(Qt::blue));
 
-    int num;            //номер записи
-    int timestamp;      //отметка времени, мс
-    int duration;       //длительность, мс
-    QString ledColor;   //цвет светодиодов
-    QString ledData;    //данные о расположении светодиодов в формате %fretNum0%fretNum1...%fretNumX
-                        //(X - номер старшей струны)
+    int id;             //идентификатор параметра
+    QString name;       //имя параметра
+    int period;         //период обновления значения
+    qreal factor;       //коэффициент перевода из сырых данных в данные представления
+    qreal shift;        //сдвиг сырых данных
+    qreal value;        //финальное значение параметра
+    int rawValue;       //"сырое" значение параметра
+    bool fActive;       //параметр активен (производится запрос новых данных)
+    bool fShowGraph;    //флаг графического представления параметра
+    QColor graphColor;  //цвет графика
 
-    inline bool operator ==(const LedRecordItem &other) {
-        return (num == other.num) && (timestamp == other.timestamp) && (duration == other.duration) &&
-               (ledColor == other.ledColor) && (ledData == other.ledData);
+    inline bool operator ==(const ParamDataItem &other) {
+        return ((id == other.id) && (name == other.name));
     }
 };
 
-class LedRecordModel : public QAbstractTableModel
+/**
+ * @brief The ChartRecordModel class
+ *  Модель данных для табличного отображения парамеров
+ */
+class ChartRecordModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit LedRecordModel(QObject* parent = 0);
-    //~LogRecordModel();
+    explicit ChartRecordModel(QObject* parent = 0);
+    //~ChartRecordModel();
 
-    void addRecord(const LedRecordItem &record);
-    void removeRecord(const LedRecordItem &record);
+    void addRecord(const ParamDataItem &record);
+    void removeRecord(const ParamDataItem &record);
     void removeRecord(int index);
-    void rewriteRecord(int index, const LedRecordItem &rwRecord);
+    void rewriteRecord(int index, const ParamDataItem &rwRecord);
 
-    QList<LedRecordItem> readAllData();
+    QList<ParamDataItem> readAllData();
     void removeAll();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -49,10 +59,10 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role);
 
 private:
-    QList<LedRecordItem> records;
+    QList<ParamDataItem> records;
 
 private:
-    const int MAX_COLUMN_NUM_LOG = 4;
+    const int MAX_COLUMN_NUM = 9;
 
 };
 

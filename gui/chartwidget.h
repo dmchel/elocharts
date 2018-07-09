@@ -52,6 +52,7 @@ private:
     QPoint prevMousePos = QPoint(0, 0);
     bool fLeftButton = false;
     QPointF prevPoint = QPoint(0.0, 0.0);
+    qreal totalChartTime = 0.0;
 };
 
 #endif // GUICHARTWIDGET_H

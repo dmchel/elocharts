@@ -83,7 +83,7 @@ void ProtocolData::saveParam(int id, qint32 val)
 
 void ProtocolData::onTestTimerTimeout()
 {
-    quint64 t = QTime::currentTime().msecsSinceStartOfDay();
-    saveParam(1, 50 * sin(0.05 * t));
-    //saveParam(1, (qrand() % 1000));
+    //quint64 t = QTime::currentTime().msecsSinceStartOfDay();
+    //saveParam(1, 50 * sin(0.05 * t));
+    saveParam(1, (qrand() % 1000));
 }
