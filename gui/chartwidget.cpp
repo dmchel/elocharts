@@ -3,6 +3,7 @@
 #include <QtCharts/QChart>
 #include <QtWidgets/QVBoxLayout>
 #include <QtCharts/QValueAxis>
+#include <QDebug>
 
 #include "chartwidget.h"
 
@@ -18,7 +19,7 @@ ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent)
     axisX->setLabelFormat("%g");
     axisX->setTitleText("t, ms");
     QValueAxis *axisY = new QValueAxis;
-    axisY->setRange(-500, 500);
+    axisY->setRange(0, 1000);
     axisY->setTitleText("Signal, mV");
     m_chart->setAxisX(axisX, m_series);
     m_chart->setAxisY(axisY, m_series);
@@ -114,9 +115,12 @@ void ChartWidget::addDataToChart(qreal x, qreal y)
 {
     m_series->append(x, y);
     qreal dx = x - prevPoint.rx();
-    m_chart->scroll(dx, 0);
-    m_chart->update();
+    totalChartTime += dx;
+    if(totalChartTime > 9000.0) {
+        m_chart->scroll(dx / 20, 0);
+    }
     prevPoint.setX(x);
+    m_chart->update();
 }
 
 void ChartWidget::removeDataFromChart(qreal x, qreal y)

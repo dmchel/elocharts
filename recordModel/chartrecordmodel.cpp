@@ -1,35 +1,39 @@
-#include "ledrecordmodel.h"
+#include "chartrecordmodel.h"
 
-#include <QColor>
-
-LedRecordItem::LedRecordItem() : num(0), timestamp(0), duration(0),
-                                 ledColor("red"), ledData("0000")
+ParamDataItem::ParamDataItem()
 {
 
 }
 
-LedRecordItem::LedRecordItem(int num_, int timestamp_, int duration_,
-                             QString color, QString data)
+ParamDataItem::ParamDataItem(int pId, const QString &pName, int pPeriod,
+                             qreal pFactor, qreal pShift, qreal pValue,
+                             int pRawValue, bool isActive, bool fGraph,
+                             QColor color)
 {
-    num = num_;
-    timestamp = timestamp_;
-    duration = duration_;
-    ledColor = color;
-    ledData = data;
+    id = pId;
+    name = pName;
+    period = pPeriod;
+    factor = pFactor;
+    shift = pShift;
+    value = pValue;
+    rawValue = pRawValue;
+    fActive = isActive;
+    fShowGraph = fGraph;
+    graphColor = color;
 }
 
-LedRecordModel::LedRecordModel(QObject *parent) : QAbstractTableModel(parent)
+ChartRecordModel::ChartRecordModel(QObject *parent) : QAbstractTableModel(parent)
 {
     records.clear();
 }
 
-void LedRecordModel::addRecord(const LedRecordItem &record) {
+void ChartRecordModel::addRecord(const ParamDataItem &record) {
     beginResetModel();
     records.append(record);
     endResetModel();
 }
 
-void LedRecordModel::removeRecord(const LedRecordItem &record) {
+void ChartRecordModel::removeRecord(const ParamDataItem &record) {
     beginResetModel();
     int index = records.indexOf(record, 0);
     if(index >= 0) {
@@ -38,7 +42,7 @@ void LedRecordModel::removeRecord(const LedRecordItem &record) {
     endResetModel();
 }
 
-void LedRecordModel::removeRecord(int index)
+void ChartRecordModel::removeRecord(int index)
 {
     beginResetModel();
     if((index >= 0) && (index < records.size())) {
@@ -47,7 +51,7 @@ void LedRecordModel::removeRecord(int index)
     endResetModel();
 }
 
-void LedRecordModel::rewriteRecord(int index, const LedRecordItem &rwRecord)
+void ChartRecordModel::rewriteRecord(int index, const ParamDataItem &rwRecord)
 {
     beginResetModel();
     if((index >= 0) && (index < records.size())) {
@@ -56,18 +60,18 @@ void LedRecordModel::rewriteRecord(int index, const LedRecordItem &rwRecord)
     endResetModel();
 }
 
-QList<LedRecordItem> LedRecordModel::readAllData()
+QList<ParamDataItem> ChartRecordModel::readAllData()
 {
     return records;
 }
 
-void LedRecordModel::removeAll() {
+void ChartRecordModel::removeAll() {
     beginResetModel();
     records.clear();
     endResetModel();
 }
 
-Qt::ItemFlags LedRecordModel::flags(const QModelIndex &index) const {
+Qt::ItemFlags ChartRecordModel::flags(const QModelIndex &index) const {
     Qt::ItemFlags theFlags = QAbstractTableModel::flags(index);
     if(index.isValid()) {
         theFlags |= Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
@@ -75,35 +79,45 @@ Qt::ItemFlags LedRecordModel::flags(const QModelIndex &index) const {
     return theFlags;
 }
 
-int LedRecordModel::rowCount(const QModelIndex &parent) const {
+int ChartRecordModel::rowCount(const QModelIndex &parent) const {
     return parent.isValid() ? 0 : records.count();
 }
 
-int LedRecordModel::columnCount(const QModelIndex &parent) const {
-    return parent.isValid() ? 0 : (MAX_COLUMN_NUM_LOG + 1);
+int ChartRecordModel::columnCount(const QModelIndex &parent) const {
+    return parent.isValid() ? 0 : (MAX_COLUMN_NUM + 1);
 }
 
-QVariant LedRecordModel::data(const QModelIndex &index, int role) const {
+QVariant ChartRecordModel::data(const QModelIndex &index, int role) const {
     if((!index.isValid()) || (index.column() < 0) || (index.row() < 0) || (index.row() > records.count())
-            || (index.column() > MAX_COLUMN_NUM_LOG)) {
+            || (index.column() > MAX_COLUMN_NUM)) {
         return QVariant();
     }
     if(records.isEmpty()) {
         return QVariant();
     }
     if(role == Qt::DisplayRole) {
-        const LedRecordItem &record = records.at(index.row());
+        const ParamDataItem &record = records.at(index.row());
         switch (index.column()) {
         case 0:
-            return record.num;
+            return record.id;
         case 1:
-            return record.timestamp;
+            return record.name;
         case 2:
-            return record.duration;
+            return record.period;
         case 3:
-            return record.ledColor;
+            return record.factor;
         case 4:
-            return record.ledData;
+            return record.shift;
+        case 5:
+            return record.value;
+        case 6:
+            return record.rawValue;
+        case 7:
+            return record.fActive;
+        case 8:
+            return record.fShowGraph;
+        case 9:
+            return record.graphColor;
         }
     }
     /*else if(role == Qt::DecorationRole) {
@@ -112,22 +126,32 @@ QVariant LedRecordModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-QVariant LedRecordModel::headerData(int section, Qt::Orientation orientation, int role) const {
+QVariant ChartRecordModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if(role != Qt::DisplayRole) {
         return QVariant();
     }
     if(orientation == Qt::Horizontal) {
         switch(section) {
         case 0:
-            return tr("Number");
+            return tr("id");
         case 1:
-            return tr("Timestamp");
+            return tr("Имя");
         case 2:
-            return tr("Duration");
+            return tr("Период");
         case 3:
-            return tr("LedColor");
+            return tr("Коэффициент");
         case 4:
-            return tr("LedData");
+            return tr("Сдвиг");
+        case 5:
+            return tr("Значение");
+        case 6:
+            return tr("Сырое значение");
+        case 7:
+            return tr("Активен");
+        case 8:
+            return tr("Показать график");
+        case 9:
+            return tr("Цвет");
         default:
             return QVariant();
         }
@@ -135,7 +159,7 @@ QVariant LedRecordModel::headerData(int section, Qt::Orientation orientation, in
     return QVariant();
 }
 
-bool LedRecordModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (role != Qt::EditRole) {
         return false;
@@ -145,19 +169,34 @@ bool LedRecordModel::setData(const QModelIndex &index, const QVariant &value, in
         if(row < records.size()) {
             switch (index.column()) {
             case 0:
-                records[row].num = value.toInt();
+                records[row].id = value.toInt();
                 return true;
             case 1:
-                records[row].timestamp = value.toInt();
+                records[row].name = value.toString();
                 return true;
             case 2:
-                records[row].duration = value.toInt();
+                records[row].period = value.toInt();
                 return true;
             case 3:
-                records[row].ledColor = value.toString();
+                records[row].factor = value.toDouble();
                 return true;
             case 4:
-                records[row].ledData = value.toString();
+                records[row].shift = value.toDouble();
+                return true;
+            case 5:
+                records[row].value = value.toDouble();
+                return true;
+            case 6:
+                records[row].rawValue = value.toInt();
+                return true;
+            case 7:
+                records[row].fActive = value.toBool();
+                return true;
+            case 8:
+                records[row].fShowGraph = value.toBool();
+                return true;
+            case 9:
+                records[row].graphColor = value.value<QColor>();
                 return true;
             }
         }

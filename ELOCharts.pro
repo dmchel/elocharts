@@ -23,7 +23,8 @@ SOURCES += \
     gui/mainwindow.cpp \
     settingswizard.cpp \
     recordModel/chartrecordmodel.cpp \
-    recordModel/customrecorddelegate.cpp
+    recordModel/customrecorddelegate.cpp \
+    console.cpp
 
 HEADERS += \
     protocolmanager.h \
@@ -35,7 +36,8 @@ HEADERS += \
     gui/mainwindow.h \
     settingswizard.h \
     recordModel/chartrecordmodel.h \
-    recordModel/customrecorddelegate.h
+    recordModel/customrecorddelegate.h \
+    console.h
 
 RESOURCES += qml.qrc
 
