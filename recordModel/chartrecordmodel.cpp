@@ -2,7 +2,16 @@
 
 ParamDataItem::ParamDataItem()
 {
-
+    id = 0;
+    name = "none";
+    period = 0;
+    factor = 0.0;
+    shift = 0.0;
+    value = 0.0;
+    rawValue = 0;
+    fActive = false;
+    fShowGraph = false;
+    graphColor = QColor(0, 0, 0);
 }
 
 ParamDataItem::ParamDataItem(int pId, const QString &pName, int pPeriod,
@@ -30,6 +39,28 @@ ChartRecordModel::ChartRecordModel(QObject *parent) : QAbstractTableModel(parent
 void ChartRecordModel::addRecord(const ParamDataItem &record) {
     beginResetModel();
     records.append(record);
+    endResetModel();
+}
+
+/**
+ * @brief ChartRecordModel::updateRecord
+ *  Обновить значение записи если она существует (проверка по id),
+ * либо добавить новую запись, если такой записи еще нет в списке
+ * @param record
+ */
+void ChartRecordModel::updateRecord(const ParamDataItem &record)
+{
+    beginResetModel();
+    bool fReplaced = false;
+    for(auto &rec : records) {
+        if(rec.id == record.id) {
+            rec = record;
+            fReplaced = true;
+        }
+    }
+    if(!fReplaced) {
+        records.append(record);
+    }
     endResetModel();
 }
 

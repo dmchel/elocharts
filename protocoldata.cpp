@@ -1,18 +1,25 @@
 #include "protocoldata.h"
 
 #include <QTimer>
-#include <QTime>
-#include <chrono>
+#include <QDateTime>
+//#include <chrono>
 #include <math.h>
 #include <QDebug>
 
 ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
 {
+    qRegisterMetaType<RawData>("RawData");
     testTimer = new QTimer(this);
     testTimer->setTimerType(Qt::PreciseTimer);
     connect(testTimer, &QTimer::timeout, this, &ProtocolData::onTestTimerTimeout);
     testTimer->start(100);
     qsrand(42);
+    timestamp = QDateTime::currentMSecsSinceEpoch();
+}
+
+void ProtocolData::resetTimestamp()
+{
+    timestamp = QDateTime::currentMSecsSinceEpoch();
 }
 
 /**
@@ -34,6 +41,12 @@ void ProtocolData::packetHandler(const SerialPacket &pack)
     }
 }
 
+/**
+ * @brief ProtocolData::setParamOnDevice
+ *  Установить значения параметра на устройстве
+ * @param id
+ * @param val
+ */
 void ProtocolData::setParamOnDevice(int id, quint32 val)
 {
     SerialPacket pack;
@@ -43,6 +56,11 @@ void ProtocolData::setParamOnDevice(int id, quint32 val)
     emit generatePacket(pack);
 }
 
+/**
+ * @brief ProtocolData::requesetParamFromDevice
+ *  Запросить значение параметра с устройства
+ * @param id
+ */
 void ProtocolData::requesetParamFromDevice(int id)
 {
     SerialPacket pack;
@@ -57,33 +75,16 @@ void ProtocolData::requesetParamFromDevice(int id)
 
 void ProtocolData::saveParam(int id, qint32 val)
 {
-    quint64 t = QTime::currentTime().msecsSinceStartOfDay();
-    QPointF point = QPointF(0, val);
-    //qDebug() << t << val;
-    //quint64 t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now());
-    bool fExist = false;
-    for(auto param : params) {
-        if(param.id == id) {
-            point = QPointF(t - param.timestamp, val);
-            param.dots.append(point);
-            param.timestamp = t;
-            fExist = true;
-            break;
-        }
-    }
-    if(!fExist) {
-        RawData data;
-        data.id = id;
-        data.timestamp = t;
-        data.dots.append(point);
-        params.append(data);
-    }
-    emit dataArrived(point);
+    quint64 t = QDateTime::currentMSecsSinceEpoch();
+    RawData newData;
+    newData.id = id;
+    newData.dot = QPointF(t - timestamp, val);
+    emit dataArrived(newData);
 }
 
 void ProtocolData::onTestTimerTimeout()
 {
-    //quint64 t = QTime::currentTime().msecsSinceStartOfDay();
+    //quint64 t = QDateTime::currentMSecsSinceEpoch();
     //saveParam(1, 50 * sin(0.05 * t));
     saveParam(1, (qrand() % 1000));
 }

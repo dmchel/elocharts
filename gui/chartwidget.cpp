@@ -39,16 +39,16 @@ void LiveChart::mouseMoveEvent(QMouseEvent *event)
             QPoint point = event->pos() - prevMousePos;
             qreal dx = 0.0, dy = 0.0;
             if(point.rx() > 0) {
-                dx = -1.0;
+                dx = -2.0;
             }
             else if(point.rx() < 0) {
-                dx = 1.0;
+                dx = 2.0;
             }
             if(point.ry() > 0) {
-                dy = -1.0;
+                dy = -2.0;
             }
             else if(point.ry() < 0) {
-                dy = 1.0;
+                dy = 2.0;
             }
             this->chart()->scroll(0, dy);
         }

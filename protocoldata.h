@@ -11,10 +11,13 @@ class QTimer;
 
 struct RawData {
     int id;
-    qint64 timestamp;
-    QVector<QPointF> dots;
+    QPointF dot;
 };
 
+/**
+ * @brief The ProtocolData class
+ *  Объект для обработки данных протокола обмена с устройством
+ */
 class ProtocolData : public QObject
 {
     Q_OBJECT
@@ -23,9 +26,10 @@ public:
 
 signals:
     void generatePacket(const SerialPacket &pack);
-    void dataArrived(QPointF point);
+    void dataArrived(RawData value);
 
 public slots:
+    void resetTimestamp();
     void packetHandler(const SerialPacket &pack);
     void setParamOnDevice(int id, quint32 val);
     void requesetParamFromDevice(int id);
@@ -37,8 +41,8 @@ private:
     void saveParam(int id, qint32 val);
 
 private:
-    QVector<RawData> params;
-    QTimer *testTimer;
+    qint64 timestamp = 0;                               //начальная отметка времени (для расчета x-координаты точки)
+    QTimer *testTimer = Q_NULLPTR;
 
 };
 

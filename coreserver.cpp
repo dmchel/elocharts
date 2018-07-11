@@ -2,7 +2,7 @@
 
 #include "dev/serialhandler.h"
 //#include "protocolmanager.h"
-#include "protocoldata.h"
+#include "recordModel/chartrecordmodel.h"
 
 #include <QThread>
 #include <QDebug>
@@ -12,11 +12,18 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     dataVault = new ProtocolData(this);
 
     connect(dataVault, &ProtocolData::dataArrived, this, &CoreServer::onNewChartData);
+
+    chartModel = new ChartRecordModel(this);
 }
 
 CoreServer::~CoreServer()
 {
 
+}
+
+ChartRecordModel *CoreServer::dataModel() const
+{
+    return chartModel;
 }
 
 /**
@@ -93,8 +100,9 @@ void CoreServer::onCloseSerialPort()
     qDebug() << "Serial port closed.";
 }
 
-void CoreServer::onNewChartData(QPointF point)
+void CoreServer::onNewChartData(RawData value)
 {
-    emit chartData(point.x(), point.y());
+    //chartModel->updateRecord();
+    emit chartData(value.dot.x(), value.dot.y());
 }
 

@@ -4,9 +4,12 @@
 #include <QObject>
 #include <QPointF>
 
+#include "protocoldata.h"
+
 class ProtocolManager;
 class SerialHandler;
 class ProtocolData;
+class ChartRecordModel;
 
 /**
  * @brief The CoreServer class
@@ -18,6 +21,8 @@ class CoreServer : public QObject
 public:
     explicit CoreServer(QObject *parent = nullptr);
     ~CoreServer();
+
+    ChartRecordModel *dataModel() const;
 
 signals:
     void stopSerial();
@@ -31,16 +36,17 @@ public slots:
     void closeSerialPort();
 
 private slots:
-    void onNewChartData(QPointF point);
+    void onNewChartData(RawData value);
 
 private:
     void onOpenSerialPort();
     void onCloseSerialPort();
 
 private:
-    ProtocolManager *protocol;
-    SerialHandler *serialDevice;
-    ProtocolData *dataVault;
+    ProtocolManager *protocol = Q_NULLPTR;
+    SerialHandler *serialDevice = Q_NULLPTR;
+    ProtocolData *dataVault = Q_NULLPTR;
+    ChartRecordModel *chartModel = Q_NULLPTR;
 };
 
 #endif // CORESERVER_H

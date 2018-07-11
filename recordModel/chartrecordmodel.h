@@ -43,6 +43,7 @@ public:
     //~ChartRecordModel();
 
     void addRecord(const ParamDataItem &record);
+    void updateRecord(const ParamDataItem &record);
     void removeRecord(const ParamDataItem &record);
     void removeRecord(int index);
     void rewriteRecord(int index, const ParamDataItem &rwRecord);
