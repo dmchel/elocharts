@@ -48,18 +48,13 @@ void ChartRecordModel::addRecord(const ParamDataItem &record) {
  * либо добавить новую запись, если такой записи еще нет в списке
  * @param record
  */
-void ChartRecordModel::updateRecord(const ParamDataItem &record)
+void ChartRecordModel::updateRecord(int id, int value)
 {
     beginResetModel();
     bool fReplaced = false;
-    for(auto &rec : records) {
-        if(rec.id == record.id) {
-            rec = record;
-            fReplaced = true;
-        }
-    }
+
     if(!fReplaced) {
-        records.append(record);
+        records.append(id);
     }
     endResetModel();
 }
@@ -239,3 +234,21 @@ bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, 
   Private methods
  */
 
+/**
+ * @brief ChartRecordModel::findRecord
+ *  Поиск записи по id
+ * @param id
+ * @param dest буфер для сохранения результата в случае успеха
+ * @return fExist флаг успешности поиска
+ */
+bool ChartRecordModel::findRecord(int id, ParamDataItem *dest)
+{
+    bool fExist = false;
+    for(auto &rec : records) {
+        if(rec.id == id) {
+            *dest = rec;
+            fExist = true;
+        }
+    }
+    return fExist;
+}

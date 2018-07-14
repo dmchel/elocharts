@@ -5,11 +5,21 @@
 
 SettingsWizard::SettingsWizard(QObject *parent) : QObject(parent)
 {
-    mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "VSU", "display", this);
-    backupSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "VSU", "display_backup", this);
+    mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName, this);
+    backupSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName + "_backup", this);
     fBackupNeedUpdate = false;
     initErrorString = "";
     initSettings();
+}
+
+void SettingsWizard::setApplicationName(const QString &name)
+{
+    appName = name;
+}
+
+void SettingsWizard::setOrganizationName(const QString &name)
+{
+    orgName = name;
 }
 
 /**
@@ -203,7 +213,7 @@ void SettingsWizard::updateBackupFile() {
         fBackupNeedUpdate = false;
         return;
     }
-    QFile backupTempFile("display_temp.ini");
+    QFile backupTempFile(appName + "_temp.ini");
     if(backupTempFile.open(QIODevice::ReadOnly)) {
         backupTempFile.remove();
     }
@@ -255,7 +265,7 @@ void SettingsWizard::initSettings()
             //после копирования производится повторное чтение файла настроек
             else {
                 delete mainSettings;
-                mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "VSU", "display", this);
+                mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName, this);
                 keysList = mainSettings->allKeys();
             }
         }

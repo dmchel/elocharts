@@ -43,10 +43,12 @@ public:
     //~ChartRecordModel();
 
     void addRecord(const ParamDataItem &record);
-    void updateRecord(const ParamDataItem &record);
+    void updateRecord(int id, int value);
     void removeRecord(const ParamDataItem &record);
     void removeRecord(int index);
     void rewriteRecord(int index, const ParamDataItem &rwRecord);
+
+    ParamDataItem recordById(int id);
 
     QList<ParamDataItem> readAllData();
     void removeAll();
@@ -60,9 +62,11 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role);
 
 private:
-    QList<ParamDataItem> records;
+    bool findRecord(int id, ParamDataItem *dest);
 
 private:
+    QList<ParamDataItem> records;
+
     const int MAX_COLUMN_NUM = 9;
 
 };

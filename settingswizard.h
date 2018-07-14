@@ -10,6 +10,9 @@ class SettingsWizard : public QObject
 public:
     explicit SettingsWizard(QObject *parent = 0);
 
+    void setApplicationName(const QString &name);
+    void setOrganizationName(const QString &name);
+
     QVariant readValue(const QString &key, const QVariant &defaultValue);
     QVariant readValue(const QString &arrayPrefix, int index, const QString &key, const QVariant &defaultValue);
     QVariant readValue(const QString &arrayPrefix, int index, const QString &subArrayPrefix, int subIndex,
@@ -51,6 +54,9 @@ private:
     QSettings *backupSettings;
     QString initErrorString;
     bool fBackupNeedUpdate;
+
+    QString orgName = "";
+    QString appName = "";
 };
 
 #endif // SETTINGSWIZARD_H

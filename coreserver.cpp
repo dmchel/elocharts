@@ -3,6 +3,7 @@
 #include "dev/serialhandler.h"
 //#include "protocolmanager.h"
 #include "recordModel/chartrecordmodel.h"
+#include "settingswizard.h"
 
 #include <QThread>
 #include <QDebug>
@@ -14,6 +15,7 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     connect(dataVault, &ProtocolData::dataArrived, this, &CoreServer::onNewChartData);
 
     chartModel = new ChartRecordModel(this);
+    settings = new SettingsWizard(this);
 }
 
 CoreServer::~CoreServer()
@@ -98,6 +100,16 @@ void CoreServer::onCloseSerialPort()
     protocol = Q_NULLPTR;
     serialDevice = Q_NULLPTR;
     qDebug() << "Serial port closed.";
+}
+
+void CoreServer::readSettings()
+{
+
+}
+
+void CoreServer::writeParamToSettings(int id)
+{
+
 }
 
 void CoreServer::onNewChartData(RawData value)

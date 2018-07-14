@@ -10,6 +10,7 @@ class ProtocolManager;
 class SerialHandler;
 class ProtocolData;
 class ChartRecordModel;
+class SettingsWizard;
 
 /**
  * @brief The CoreServer class
@@ -41,12 +42,15 @@ private slots:
 private:
     void onOpenSerialPort();
     void onCloseSerialPort();
+    void readSettings();
+    void writeParamToSettings(int id);
 
 private:
     ProtocolManager *protocol = Q_NULLPTR;
     SerialHandler *serialDevice = Q_NULLPTR;
     ProtocolData *dataVault = Q_NULLPTR;
     ChartRecordModel *chartModel = Q_NULLPTR;
+    SettingsWizard *settings = Q_NULLPTR;
 };
 
 #endif // CORESERVER_H
