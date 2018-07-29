@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -18,8 +18,8 @@
   </property>
   <property name="baseSize">
    <size>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </size>
   </property>
   <property name="font">
@@ -37,12 +37,60 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1024</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="paramMenu">
+    <property name="title">
+     <string>Параметры</string>
+    </property>
+    <addaction name="addParamAction"/>
+    <addaction name="deleteParamAction"/>
+   </widget>
+   <widget class="QMenu" name="graphMenu">
+    <property name="title">
+     <string>Графики</string>
+    </property>
+    <addaction name="runAction"/>
+    <addaction name="stopAction"/>
+    <addaction name="resetAction"/>
+    <addaction name="fitInAction"/>
+   </widget>
+   <addaction name="paramMenu"/>
+   <addaction name="graphMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="addParamAction">
+   <property name="text">
+    <string>Добавить новый параметр</string>
+   </property>
+  </action>
+  <action name="deleteParamAction">
+   <property name="text">
+    <string>Удалить выбранные параметры</string>
+   </property>
+  </action>
+  <action name="runAction">
+   <property name="text">
+    <string>Запустить</string>
+   </property>
+  </action>
+  <action name="stopAction">
+   <property name="text">
+    <string>Остановить</string>
+   </property>
+  </action>
+  <action name="resetAction">
+   <property name="text">
+    <string>Сброс</string>
+   </property>
+  </action>
+  <action name="fitInAction">
+   <property name="text">
+    <string>Вписать все графики в экран</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

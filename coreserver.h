@@ -5,11 +5,11 @@
 #include <QPointF>
 
 #include "protocoldata.h"
+#include "recordModel/chartrecordmodel.h"
+#include "recordModel/customrecorddelegate.h"
 
 class ProtocolManager;
 class SerialHandler;
-class ProtocolData;
-class ChartRecordModel;
 class SettingsWizard;
 
 /**
@@ -24,13 +24,16 @@ public:
     ~CoreServer();
 
     ChartRecordModel *dataModel() const;
+    CustomRecordDelegate *dataDelegate() const;
 
 signals:
     void stopSerial();
     void connected();
     void disconnected();
+    void sendConnectionStatus(bool flag);
+    void connectionInfoChanged(const QString &str);
 
-    void chartData(qreal x, qreal y);
+    void chartData(int id, qreal x, qreal y);
 
 public slots:
     void openSerialPort(const QString &name);
@@ -38,6 +41,7 @@ public slots:
 
 private slots:
     void onNewChartData(RawData value);
+    void checkConnection();
 
 private:
     void onOpenSerialPort();
@@ -50,7 +54,10 @@ private:
     SerialHandler *serialDevice = Q_NULLPTR;
     ProtocolData *dataVault = Q_NULLPTR;
     ChartRecordModel *chartModel = Q_NULLPTR;
+    CustomRecordDelegate *chartDelegate = Q_NULLPTR;
     SettingsWizard *settings = Q_NULLPTR;
+
+    QTimer *checkConnectionTimer = Q_NULLPTR;
 };
 
 #endif // CORESERVER_H

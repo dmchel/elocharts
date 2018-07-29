@@ -2,11 +2,19 @@
 #include "ui_mainwindow.h"
 #include "chartwidget.h"
 
+#include <QTableView>
+#include <QDockWidget>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    varTable = new QTableView(this);
+    connectionStatusLabel = new QLabel(this);
+    connectionInfoLabel = new QLabel(this);
+    this->statusBar()->addPermanentWidget(connectionStatusLabel);
+    this->statusBar()->addPermanentWidget(connectionInfoLabel);
 }
 
 MainWindow::~MainWindow()
@@ -17,7 +25,52 @@ MainWindow::~MainWindow()
 void MainWindow::setChartWidget(ChartWidget *widget)
 {
     if(widget) {
+        if(charts != Q_NULLPTR) {
+            delete charts;
+        }
         charts = widget;
-        //ui->chartWidget = charts;
+        this->setCentralWidget(charts);
     }
+}
+
+void MainWindow::setTableModel(QAbstractItemModel *model)
+{
+    if(model) {
+        varTable->setModel(model);
+        if(bottomDockWidget != Q_NULLPTR) {
+            this->removeDockWidget(bottomDockWidget);
+        }
+        bottomDockWidget = new QDockWidget(this);
+        bottomDockWidget->setWidget(varTable);
+        bottomDockWidget->setTitleBarWidget(new QWidget());
+        bottomDockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
+        this->addDockWidget(Qt::BottomDockWidgetArea, bottomDockWidget, Qt::Horizontal);
+    }
+}
+
+void MainWindow::setTableDelegate(QAbstractItemDelegate *delegate)
+{
+    if(delegate) {
+        varTable->setItemDelegate(delegate);
+    }
+}
+
+void MainWindow::updateConnectionStatus(bool flag)
+{
+    if(flag) {
+        connectionStatusLabel->setText(tr("Соединение установлено"));
+    }
+    else {
+        connectionStatusLabel->setText(tr("Нет связи с устройством"));
+    }
+}
+
+void MainWindow::updateConnectionInfo(const QString &str)
+{
+    connectionInfoLabel->setText(str);
+}
+
+void MainWindow::showStatusMessage(const QString &str)
+{
+    this->statusBar()->showMessage(str);
 }

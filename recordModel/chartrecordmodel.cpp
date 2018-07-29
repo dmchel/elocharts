@@ -50,13 +50,13 @@ void ChartRecordModel::addRecord(const ParamDataItem &record) {
  */
 void ChartRecordModel::updateRecord(int id, int value)
 {
-    beginResetModel();
+    /*beginResetModel();
     bool fReplaced = false;
 
     if(!fReplaced) {
         records.append(id);
     }
-    endResetModel();
+    endResetModel();*/
 }
 
 void ChartRecordModel::removeRecord(const ParamDataItem &record) {

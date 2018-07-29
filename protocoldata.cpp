@@ -3,7 +3,7 @@
 #include <QTimer>
 #include <QDateTime>
 //#include <chrono>
-#include <math.h>
+#include <qmath.h>
 #include <QDebug>
 
 ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
@@ -84,7 +84,14 @@ void ProtocolData::saveParam(int id, qint32 val)
 
 void ProtocolData::onTestTimerTimeout()
 {
-    //quint64 t = QDateTime::currentMSecsSinceEpoch();
-    //saveParam(1, 50 * sin(0.05 * t));
+    quint64 t = QDateTime::currentMSecsSinceEpoch();
+    int x = 0;
+    if(qSin(t - timestamp) < 0) {
+        x = -1;
+    }
+    else if(qSin(t - timestamp) > 0) {
+        x = 1;
+    }
     saveParam(1, (qrand() % 1000));
+    saveParam(2, 250 * x);
 }

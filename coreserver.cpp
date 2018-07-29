@@ -1,11 +1,11 @@
 #include "coreserver.h"
 
 #include "dev/serialhandler.h"
-//#include "protocolmanager.h"
 #include "recordModel/chartrecordmodel.h"
 #include "settingswizard.h"
 
 #include <QThread>
+#include <QTimer>
 #include <QDebug>
 
 CoreServer::CoreServer(QObject *parent) : QObject(parent)
@@ -15,7 +15,12 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     connect(dataVault, &ProtocolData::dataArrived, this, &CoreServer::onNewChartData);
 
     chartModel = new ChartRecordModel(this);
+    chartDelegate = new CustomRecordDelegate(this);
     settings = new SettingsWizard(this);
+
+    checkConnectionTimer = new QTimer(this);
+    connect(checkConnectionTimer, &QTimer::timeout, this, &CoreServer::checkConnection);
+    checkConnectionTimer->start(100);
 }
 
 CoreServer::~CoreServer()
@@ -26,6 +31,11 @@ CoreServer::~CoreServer()
 ChartRecordModel *CoreServer::dataModel() const
 {
     return chartModel;
+}
+
+CustomRecordDelegate *CoreServer::dataDelegate() const
+{
+    return chartDelegate;
 }
 
 /**
@@ -51,7 +61,7 @@ void CoreServer::openSerialPort(const QString &name)
     settings.flowControl = QSerialPort::NoFlowControl;
     settings.name = name;
     //settings.name = ports.at(0).portName();
-    settings.parity = QSerialPort::EvenParity;
+    settings.parity = QSerialPort::NoParity;
     settings.stopBits = QSerialPort::OneStop;
     serialDevice->setSettings(settings);
 
@@ -115,6 +125,16 @@ void CoreServer::writeParamToSettings(int id)
 void CoreServer::onNewChartData(RawData value)
 {
     //chartModel->updateRecord();
-    emit chartData(value.dot.x(), value.dot.y());
+    emit chartData(value.id, value.dot.x(), value.dot.y());
+}
+
+void CoreServer::checkConnection()
+{
+    if(protocol != Q_NULLPTR) {
+        ProtocolManager::CommunicationStatistic statistic = protocol->commStatus();
+        emit sendConnectionStatus(statistic.fConnected);
+        QString infoStr = "Rx: " + QString::number(statistic.rxBytes) + "Tx: " + QString::number(statistic.txBytes) + " bytes";
+        emit connectionInfoChanged(infoStr);
+    }
 }
 

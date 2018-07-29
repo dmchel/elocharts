@@ -6,6 +6,7 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
+#include <QtCharts/QValueAxis>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -41,17 +42,25 @@ protected:
     void wheelEvent(QWheelEvent *event);
 
 public slots:
-    void addDataToChart(qreal x, qreal y);
-    void removeDataFromChart(qreal x, qreal y);
+    void addDataToChart(int id, qreal x, qreal y);
+    void removeDataFromChart(int id, qreal x, qreal y);
     void clearChart();
+
+private:
+    QLineSeries *createNewLineSeries();
+    void updateVerticalAxisRange(qreal y);
 
 private:
     LiveChart *liveChart = Q_NULLPTR;
     QChart *mainChart = Q_NULLPTR;
-    QList<QLineSeries> seriesList;
+    QMap<int, QLineSeries *> seriesMap;
+    QValueAxis *axisX = Q_NULLPTR;
+    QValueAxis *axisY = Q_NULLPTR;
     QLineSeries *m_series = Q_NULLPTR;
     QPointF prevPoint = QPoint(0.0, 0.0);
-    qreal totalChartTime = 0.0;
+    qreal intervalChartTime = 0.0;
+
+    const qreal CHART_UPDATE_INTERVAL_MS = 10000.0;
 };
 
 #endif // GUICHARTWIDGET_H
