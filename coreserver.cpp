@@ -21,6 +21,13 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     checkConnectionTimer = new QTimer(this);
     connect(checkConnectionTimer, &QTimer::timeout, this, &CoreServer::checkConnection);
     checkConnectionTimer->start(100);
+
+    ParamDataItem param_1(1, "PARAM_TEST_1", 100);
+    ParamDataItem param_2(2, "PARAM_TEST_2", 100);
+    ParamDataItem param_3(3, "PARAM_TEST_3", 100);
+    chartModel->addRecord(param_1);
+    chartModel->addRecord(param_2);
+    chartModel->addRecord(param_3);
 }
 
 CoreServer::~CoreServer()
@@ -124,7 +131,7 @@ void CoreServer::writeParamToSettings(int id)
 
 void CoreServer::onNewChartData(RawData value)
 {
-    //chartModel->updateRecord();
+    chartModel->updateRecord(value.id, value.dot.y());
     emit chartData(value.id, value.dot.x(), value.dot.y());
 }
 

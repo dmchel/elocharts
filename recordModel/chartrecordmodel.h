@@ -61,8 +61,12 @@ public:
 
     bool setData(const QModelIndex &index, const QVariant &value, int role);
 
+signals:
+    void recordChanged(const QModelIndex &index);
+
 private:
-    bool findRecord(int id, ParamDataItem *dest);
+    ParamDataItem *getRecordRefById(int id);
+    int getRecordRowById(int id);
 
 private:
     QList<ParamDataItem> records;

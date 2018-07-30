@@ -44,19 +44,23 @@ void ChartRecordModel::addRecord(const ParamDataItem &record) {
 
 /**
  * @brief ChartRecordModel::updateRecord
- *  Обновить значение записи если она существует (проверка по id),
- * либо добавить новую запись, если такой записи еще нет в списке
+ *  Обновить значение записи если она существует (проверка по id)
  * @param record
  */
 void ChartRecordModel::updateRecord(int id, int value)
 {
-    /*beginResetModel();
-    bool fReplaced = false;
-
-    if(!fReplaced) {
-        records.append(id);
+    ParamDataItem *pItem = getRecordRefById(id);
+    if(pItem != Q_NULLPTR) {
+        int row = getRecordRowById(id);
+        setData(this->index(row, 6), value, Qt::EditRole);
+        qreal finalValue = value * pItem->factor + pItem->shift;
+        setData(this->index(row, 5), finalValue, Qt::EditRole);
+        emit recordChanged(this->index(row, 6));
+        emit recordChanged(this->index(row, 5));
+        //beginResetModel();
+        //pItem->value = value * pItem->factor + pItem->shift;
+        //endResetModel();
     }
-    endResetModel();*/
 }
 
 void ChartRecordModel::removeRecord(const ParamDataItem &record) {
@@ -84,6 +88,16 @@ void ChartRecordModel::rewriteRecord(int index, const ParamDataItem &rwRecord)
         records[index] = rwRecord;
     }
     endResetModel();
+}
+
+ParamDataItem ChartRecordModel::recordById(int id)
+{
+    ParamDataItem item;
+    ParamDataItem *pItem = getRecordRefById(id);
+    if(pItem != Q_NULLPTR) {
+        item = *pItem;
+    }
+    return item;
 }
 
 QList<ParamDataItem> ChartRecordModel::readAllData()
@@ -225,6 +239,7 @@ bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, 
                 records[row].graphColor = value.value<QColor>();
                 return true;
             }
+            emit dataChanged(index, index);
         }
     }
     return false;
@@ -235,20 +250,34 @@ bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, 
  */
 
 /**
- * @brief ChartRecordModel::findRecord
- *  Поиск записи по id
+ * @brief ChartRecordModel::getRecordRefById
+ *  Получить указатель на запись с идентификатором id.
+ * Если такой записи не существует возвращается Q_NULLPTR.
  * @param id
- * @param dest буфер для сохранения результата в случае успеха
- * @return fExist флаг успешности поиска
+ * @return pItem указатель на запись
  */
-bool ChartRecordModel::findRecord(int id, ParamDataItem *dest)
+ParamDataItem *ChartRecordModel::getRecordRefById(int id)
 {
-    bool fExist = false;
+    ParamDataItem *pItem = Q_NULLPTR;
+    int i = 0;
     for(auto &rec : records) {
         if(rec.id == id) {
-            *dest = rec;
-            fExist = true;
+            pItem = &records[i];
         }
+        i++;
     }
-    return fExist;
+    return pItem;
 }
+
+int ChartRecordModel::getRecordRowById(int id)
+{
+    int row = 0;
+    for(auto &rec : records) {
+        if(rec.id == id) {
+            break;
+        }
+        row++;
+    }
+    return row;
+}
+

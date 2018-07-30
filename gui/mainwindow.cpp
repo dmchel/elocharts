@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 #include "chartwidget.h"
 
+#include "recordModel/chartrecordmodel.h"
+
 #include <QTableView>
 #include <QDockWidget>
 
@@ -37,6 +39,8 @@ void MainWindow::setTableModel(QAbstractItemModel *model)
 {
     if(model) {
         varTable->setModel(model);
+        ChartRecordModel *chartModel = static_cast<ChartRecordModel*>(model);
+        connect(chartModel, &ChartRecordModel::recordChanged, varTable, QOverload<const QModelIndex&>::of(&QTableView::update));
         if(bottomDockWidget != Q_NULLPTR) {
             this->removeDockWidget(bottomDockWidget);
         }
