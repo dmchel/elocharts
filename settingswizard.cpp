@@ -5,8 +5,10 @@
 
 SettingsWizard::SettingsWizard(QObject *parent) : QObject(parent)
 {
-    mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName, this);
-    backupSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName + "_backup", this);
+    //mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName, this);
+    mainSettings = new QSettings("elochart.ini", QSettings::IniFormat, this);
+    //backupSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName + "_backup", this);
+    backupSettings = new QSettings("elochart_backup.ini", QSettings::IniFormat, this);
     fBackupNeedUpdate = false;
     initErrorString = "";
     initSettings();
@@ -122,6 +124,16 @@ int SettingsWizard::getArraySize(const QString &arrayPrefix, int index, const QS
 bool SettingsWizard::checkValueExist(const QString &key)
 {
     return (mainSettings->contains(key));
+}
+
+QStringList SettingsWizard::readAllKeys()
+{
+    return mainSettings->allKeys();
+}
+
+QStringList SettingsWizard::readAllGroups()
+{
+    return mainSettings->childGroups();
 }
 
 /**

@@ -47,7 +47,7 @@ private:
     void onOpenSerialPort();
     void onCloseSerialPort();
     void readSettings();
-    void writeParamToSettings(int id);
+    void writeParamToSettings(const ParamDataItem &item);
 
 private:
     ProtocolManager *protocol = Q_NULLPTR;

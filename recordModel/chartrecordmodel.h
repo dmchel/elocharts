@@ -5,6 +5,7 @@
 #include <QColor>
 #include <QString>
 #include <QList>
+#include <QJsonObject>
 
 class ParamDataItem
 {
@@ -14,6 +15,7 @@ public:
                   qreal pFactor = 1.0, qreal pShift = 0.0, qreal pValue = 0.0,
                   int pRawValue = 0, bool isActive = false, bool fGraph = false,
                   QColor color = QColor(Qt::blue));
+    ParamDataItem(const QJsonObject &jsonData);
 
     int id;             //идентификатор параметра
     QString name;       //имя параметра

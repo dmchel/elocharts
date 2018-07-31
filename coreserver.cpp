@@ -6,6 +6,7 @@
 
 #include <QThread>
 #include <QTimer>
+#include <QJsonObject>
 #include <QDebug>
 
 CoreServer::CoreServer(QObject *parent) : QObject(parent)
@@ -22,12 +23,18 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     connect(checkConnectionTimer, &QTimer::timeout, this, &CoreServer::checkConnection);
     checkConnectionTimer->start(100);
 
-    ParamDataItem param_1(1, "PARAM_TEST_1", 100);
-    ParamDataItem param_2(2, "PARAM_TEST_2", 100);
-    ParamDataItem param_3(3, "PARAM_TEST_3", 100);
-    chartModel->addRecord(param_1);
-    chartModel->addRecord(param_2);
-    chartModel->addRecord(param_3);
+    readSettings();
+
+    //ParamDataItem param_1(1, "PARAM_TEST_1", 100);
+    //ParamDataItem param_2(2, "PARAM_TEST_2", 100);
+    //ParamDataItem param_3(3, "PARAM_TEST_3", 100);
+    //chartModel->addRecord(param_1);
+    //chartModel->addRecord(param_2);
+    //chartModel->addRecord(param_3);
+
+    //writeParamToSettings(param_1);
+    //writeParamToSettings(param_2);
+    //writeParamToSettings(param_3);
 }
 
 CoreServer::~CoreServer()
@@ -121,12 +128,42 @@ void CoreServer::onCloseSerialPort()
 
 void CoreServer::readSettings()
 {
+    QStringList groups = settings->readAllGroups();
 
+    if(!groups.isEmpty()) {
+        for(auto group : groups) {
+            if(group.startsWith("parameter")) {
+                QJsonObject paramData;
+                paramData["id"] = settings->readValue(group + "/id", -1).toInt();
+                paramData["name"] = settings->readValue(group + "/name", "unknown").toString();
+                paramData["factor"] = settings->readValue(group + "/factor", 1.0).toDouble();
+                paramData["shift"] = settings->readValue(group + "/shift", 0.0).toDouble();
+                paramData["period"] = settings->readValue(group + "/period", 500).toInt();
+                paramData["fShowGraph"] = settings->readValue(group + "/fShowGraph", false).toBool();
+                paramData["color"] = QJsonValue::fromVariant(settings->readValue(group + "/color", QColor("blue")));
+                chartModel->addRecord(paramData);
+            }
+        }
+    }
+    else {
+        groups.clear();
+    }
 }
 
-void CoreServer::writeParamToSettings(int id)
+void CoreServer::writeParamToSettings(const ParamDataItem &item)
 {
-
+    QJsonObject paramData;
+    paramData["id"] = item.id;
+    paramData["name"] = item.name;
+    paramData["factor"] = item.factor;
+    paramData["shift"] = item.shift;
+    paramData["period"] = item.period;
+    paramData["fShowGraph"] = item.fShowGraph;
+    paramData["color"] = QJsonValue::fromVariant(QVariant(item.graphColor));
+    QString prefix = "parameter" + QString::number(paramData["id"].toInt()) + "/";
+    for(auto key : paramData.keys()) {
+        settings->saveValue(prefix + key, paramData[key].toVariant());
+    }
 }
 
 void CoreServer::onNewChartData(RawData value)

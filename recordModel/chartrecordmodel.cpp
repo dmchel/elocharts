@@ -31,6 +31,29 @@ ParamDataItem::ParamDataItem(int pId, const QString &pName, int pPeriod,
     graphColor = color;
 }
 
+ParamDataItem::ParamDataItem(const QJsonObject &jsonData)
+{
+    id = 0;
+    name = "none";
+    period = 0;
+    factor = 0.0;
+    shift = 0.0;
+    value = 0.0;
+    rawValue = 0;
+    fActive = false;
+    fShowGraph = false;
+    graphColor = QColor(0, 0, 0);
+    if(!jsonData.isEmpty()) {
+        id = jsonData["id"].toInt();
+        name = jsonData["name"].toString();
+        period = jsonData["period"].toInt();
+        factor = jsonData["factor"].toDouble();
+        shift = jsonData["shift"].toDouble();
+        fShowGraph = jsonData["fShowGraph"].toBool();
+        graphColor = jsonData["color"].toVariant().value<QColor>();
+    }
+}
+
 ChartRecordModel::ChartRecordModel(QObject *parent) : QAbstractTableModel(parent)
 {
     records.clear();

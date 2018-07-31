@@ -23,6 +23,9 @@ public:
 
     bool checkValueExist(const QString &key);
 
+    QStringList readAllKeys();
+    QStringList readAllGroups();
+
     void delayedBackupUpdate(int delayMs);
 
 signals:
