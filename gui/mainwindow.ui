@@ -47,6 +47,7 @@
     </property>
     <addaction name="addParamAction"/>
     <addaction name="deleteParamAction"/>
+    <addaction name="action"/>
    </widget>
    <widget class="QMenu" name="graphMenu">
     <property name="title">
@@ -57,8 +58,16 @@
     <addaction name="resetAction"/>
     <addaction name="fitInAction"/>
    </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Справка</string>
+    </property>
+    <addaction name="action_2"/>
+    <addaction name="actionAbout_Qt"/>
+   </widget>
    <addaction name="paramMenu"/>
    <addaction name="graphMenu"/>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="addParamAction">
@@ -89,6 +98,21 @@
   <action name="fitInAction">
    <property name="text">
     <string>Вписать все графики в экран</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>Сброс</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>О программе</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

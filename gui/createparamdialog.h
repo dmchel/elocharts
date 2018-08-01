@@ -15,6 +15,9 @@ public:
     explicit CreateParamDialog(QWidget *parent = 0);
     ~CreateParamDialog();
 
+    //void accept();
+    //void reject();
+
 private:
     Ui::CreateParamDialog *ui;
 };

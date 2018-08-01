@@ -94,4 +94,5 @@ void ProtocolData::onTestTimerTimeout()
     }
     saveParam(1, (qrand() % 1000));
     saveParam(2, 250 * x);
+    saveParam(3, 125);
 }

@@ -1,4 +1,4 @@
-QT += core widgets serialport charts
+QT += core widgets serialport charts printsupport
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -25,7 +25,9 @@ SOURCES += \
     recordModel/chartrecordmodel.cpp \
     recordModel/customrecorddelegate.cpp \
     console.cpp \
-    gui/createparamdialog.cpp
+    gui/createparamdialog.cpp \
+    qcustomplot/qcustomplot.cpp \
+    shell.cpp
 
 HEADERS += \
     protocolmanager.h \
@@ -39,7 +41,9 @@ HEADERS += \
     recordModel/chartrecordmodel.h \
     recordModel/customrecorddelegate.h \
     console.h \
-    gui/createparamdialog.h
+    gui/createparamdialog.h \
+    qcustomplot/qcustomplot.h \
+    shell.h
 
 
 # Default rules for deployment.

@@ -42,6 +42,11 @@ CoreServer::~CoreServer()
 
 }
 
+void CoreServer::setSoftVersion(const QString &str)
+{
+    progVersion = str;
+}
+
 ChartRecordModel *CoreServer::dataModel() const
 {
     return chartModel;
@@ -96,6 +101,7 @@ void CoreServer::openSerialPort(const QString &name)
     //data exchange
     connect(serialDevice, &SerialHandler::dataArrived, protocol, &ProtocolManager::receiveData);
     connect(protocol, &ProtocolManager::transmitData, serialDevice, &SerialHandler::putData);
+    connect(this, &CoreServer::sendUartTxData, serialDevice, &SerialHandler::putData);
     //connect(protocol, &ProtocolManager::sendCommStatistic, this, &CoreServer::updateConnectionInfo);
     connect(dataVault, &ProtocolData::generatePacket, protocol, &ProtocolManager::sendPacket);
     connect(protocol, &ProtocolManager::packRecieved, dataVault, &ProtocolData::packetHandler);
@@ -108,6 +114,71 @@ void CoreServer::closeSerialPort()
     emit stopSerial();
 }
 
+void CoreServer::shellListenUart()
+{
+    if(serialDevice != Q_NULLPTR) {
+        if(fListenUart) {
+            disconnect(serialDevice, &SerialHandler::dataArrived, this, &CoreServer::sendUartRxData);
+        }
+        else {
+            connect(serialDevice, &SerialHandler::dataArrived, this, &CoreServer::sendUartRxData);
+        }
+        fListenUart = !fListenUart;
+    }
+    else {
+        fListenUart = false;
+    }
+}
+
+void CoreServer::shellUartStatus()
+{
+    if(protocol != Q_NULLPTR) {
+        ProtocolManager::CommunicationStatistic stat = protocol->commStatus();
+        QStringList statList;
+        statList.append(tr("\r\nCommunication statistic: \r\n"));
+        if(stat.fConnected) {
+            statList.append(tr("SUZ online\r\n"));
+        }
+        else {
+            statList.append(tr("SUZ offline\r\n"));
+        }
+        statList.append(tr("tx packs: ") + QString().setNum(stat.txPackets) + "\r\n");
+        statList.append(tr("tx bytes: ") + QString().setNum(stat.txBytes) + "\r\n");
+        statList.append(tr("rx packs: ") + QString().setNum(stat.rxPackets) + "\r\n");
+        statList.append(tr("rx bytes: ") + QString().setNum(stat.txBytes) + "\r\n");
+        statList.append(tr("Errors total: ") + QString().setNum(stat.overallErrors) + "\r\n");
+        statList.append(tr("Crc errors: ") + QString().setNum(stat.crcErrors) + "\r\n");
+        statList.append(tr("Timeouts: ") + QString().setNum(stat.timeoutErrors) + "\r\n");
+        statList.append(tr("Format errors: ") + QString().setNum(stat.formatErrors) + "\r\n");
+        //statList.append(tr("Stuff errors: ") + QString().setNum(stat.stuffErrors) + "\r\n");
+        statList.append("\r\n");
+        emit sendConsoleText(statList.join(""));
+    }
+}
+
+void CoreServer::shellSendUart(const QByteArray &data)
+{
+    if(serialDevice != Q_NULLPTR) {
+        emit sendUartTxData(data);
+    }
+}
+
+void CoreServer::shellPrintPorts()
+{
+    QStringList portList;
+    QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    for(auto port : ports) {
+        portList.append(port.portName() + " " + (port.isBusy() ? "busy " : "free "));
+    }
+    portList.append("\r\n");
+    emit sendConsoleText(portList.join("\r\n"));
+}
+
+void CoreServer::shellVersionRequest()
+{
+    emit sendConsoleText("ELOCharts " + progVersion + ".\n");
+}
+
 /**
  * Private methods
  */
@@ -115,7 +186,8 @@ void CoreServer::closeSerialPort()
 void CoreServer::onOpenSerialPort()
 {
     emit connected();
-    qDebug() << "Serial port opened.";
+    emit sendConsoleText("Serial port opened " + serialDevice->portName() + ".\r\n");
+    qDebug() << "Serial port opened " + serialDevice->portName() + ".\r\n";
 }
 
 void CoreServer::onCloseSerialPort()

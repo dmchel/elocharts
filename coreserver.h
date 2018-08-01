@@ -23,6 +23,8 @@ public:
     explicit CoreServer(QObject *parent = nullptr);
     ~CoreServer();
 
+    void setSoftVersion(const QString &str);
+
     ChartRecordModel *dataModel() const;
     CustomRecordDelegate *dataDelegate() const;
 
@@ -32,12 +34,23 @@ signals:
     void disconnected();
     void sendConnectionStatus(bool flag);
     void connectionInfoChanged(const QString &str);
+    void sendConsoleText(const QString &str);
+
+    //shell signals
+    void sendUartRxData(const QByteArray &data);
+    void sendUartTxData(const QByteArray &data);
 
     void chartData(int id, qreal x, qreal y);
 
 public slots:
     void openSerialPort(const QString &name);
     void closeSerialPort();
+    //shell handlers
+    void shellListenUart();
+    void shellUartStatus();
+    void shellSendUart(const QByteArray &data);
+    void shellPrintPorts();
+    void shellVersionRequest();
 
 private slots:
     void onNewChartData(RawData value);
@@ -58,6 +71,9 @@ private:
     SettingsWizard *settings = Q_NULLPTR;
 
     QTimer *checkConnectionTimer = Q_NULLPTR;
+
+    bool fListenUart = false;
+    QString progVersion = "?????";
 };
 
 #endif // CORESERVER_H
