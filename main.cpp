@@ -4,6 +4,7 @@
 #include "qml/qmlwrapper.h"
 #include "gui/mainwindow.h"
 #include "gui/chartwidget.h"
+#include "gui/eloplotter.h"
 #include "coreserver.h"
 #include "shell.h"
 
@@ -17,10 +18,13 @@ int main(int argc, char *argv[])
     Shell shell;
     MainWindow w;
     ChartWidget chart;
+    ELOPlotter plot;
+
     CoreServer server;
     server.setSoftVersion(progVersion);
     //server connections
-    QObject::connect(&server, &CoreServer::chartData, &chart, &ChartWidget::addDataToChart);
+    //QObject::connect(&server, &CoreServer::chartData, &chart, &ChartWidget::addDataToChart);
+    QObject::connect(&server, &CoreServer::chartData, &plot, &ELOPlotter::addDataToPlot);
     QObject::connect(&server, &CoreServer::sendConnectionStatus, &w, &MainWindow::updateConnectionStatus);
     QObject::connect(&server, &CoreServer::connectionInfoChanged, &w, &MainWindow::updateConnectionInfo);
     QObject::connect(&server, &CoreServer::sendUartRxData, &w, &MainWindow::consolePutData);
@@ -37,11 +41,11 @@ int main(int argc, char *argv[])
     QObject::connect(&shell, &Shell::ePortList, &server, &CoreServer::shellPrintPorts);
     QObject::connect(&shell, &Shell::eVersionRequest, &server, &CoreServer::shellVersionRequest);
 
-    w.setChartWidget(&chart);
+    w.setChartWidget(&plot);
     w.setTableModel(server.dataModel());
     w.setTableDelegate(server.dataDelegate());
     w.show();
-    chart.show();
+    //plot.show();
 
     return app.exec();
 }

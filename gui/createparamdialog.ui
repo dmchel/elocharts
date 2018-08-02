@@ -96,12 +96,15 @@
         <property name="maximum">
          <number>500000</number>
         </property>
+        <property name="value">
+         <number>500</number>
+        </property>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="4,1">
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="10,1">
       <item>
        <widget class="QLabel" name="factorLabel">
         <property name="text">
@@ -110,7 +113,20 @@
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="factorSpinBox"/>
+       <widget class="QDoubleSpinBox" name="factorSpinBox">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="minimum">
+         <double>-100000000000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>100000000000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -124,7 +140,17 @@
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="shiftSpinBox"/>
+       <widget class="QDoubleSpinBox" name="shiftSpinBox">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="minimum">
+         <double>-1000000000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000000000.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

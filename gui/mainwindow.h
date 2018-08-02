@@ -22,12 +22,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void setChartWidget(ChartWidget *widget);
+    void setChartWidget(QWidget *widget);
     void setTableModel(QAbstractItemModel *model);
     void setTableDelegate(QAbstractItemDelegate *delegate);
 
 signals:
     void sendShellCommand(const QString &cmd);
+    void sendParamData(const QJsonObject &data);
 
 public slots:
     void updateConnectionStatus(bool flag);
@@ -49,7 +50,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QDockWidget *bottomDockWidget = Q_NULLPTR;
-    ChartWidget *charts = Q_NULLPTR;
+    QWidget *charts = Q_NULLPTR;
     QTableView *varTable = Q_NULLPTR;
     QLabel *connectionStatusLabel = Q_NULLPTR;
     QLabel *connectionInfoLabel = Q_NULLPTR;

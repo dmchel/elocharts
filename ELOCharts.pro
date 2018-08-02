@@ -27,7 +27,8 @@ SOURCES += \
     console.cpp \
     gui/createparamdialog.cpp \
     qcustomplot/qcustomplot.cpp \
-    shell.cpp
+    shell.cpp \
+    gui/eloplotter.cpp
 
 HEADERS += \
     protocolmanager.h \
@@ -43,7 +44,8 @@ HEADERS += \
     console.h \
     gui/createparamdialog.h \
     qcustomplot/qcustomplot.h \
-    shell.h
+    shell.h \
+    gui/eloplotter.h
 
 
 # Default rules for deployment.

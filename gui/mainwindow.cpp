@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "chartwidget.h"
+#include "eloplotter.h"
 
 #include "createparamdialog.h"
 #include "recordModel/chartrecordmodel.h"
@@ -8,6 +9,7 @@
 
 #include <QTableView>
 #include <QDockWidget>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -19,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connectionInfoLabel = new QLabel(this);
     this->statusBar()->addPermanentWidget(connectionStatusLabel);
     this->statusBar()->addPermanentWidget(connectionInfoLabel);
+    connect(ui->addParamAction, &QAction::triggered, this, &MainWindow::addNewParam);
     console = new Console(this);
     console->setLocalEchoEnabled(true);
     console->hide();
@@ -31,7 +34,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::setChartWidget(ChartWidget *widget)
+void MainWindow::setChartWidget(QWidget *widget)
 {
     if(widget) {
         if(charts != Q_NULLPTR) {
@@ -135,5 +138,19 @@ void MainWindow::onCloseConsole()
 
 void MainWindow::addNewParam()
 {
-
+    CreateParamDialog paramDialog(this);
+    if(paramDialog.exec() == QDialog::Accepted) {
+        QJsonObject jsonObject = paramDialog.jsonData();
+        if(!jsonObject.isEmpty()) {
+            if(jsonObject["name"].toString().isEmpty()) {
+                QMessageBox::warning(this, tr("Предупреждение"), tr("Необходимо ввести имя параметра."), QMessageBox::Ok);
+            }
+            else {
+                emit sendParamData(jsonObject);
+            }
+        }
+        else {
+            QMessageBox::critical(this, tr("Ошибка"), tr("Произошла ошбика чтения параметра!"), QMessageBox::Ok);
+        }
+    }
 }
