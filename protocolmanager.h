@@ -12,19 +12,21 @@ class QTimer;
 class SerialPacket
 {
 public:
-    explicit SerialPacket(quint8 _id = 0, quint32 _data = 0);
+    enum PACK_TYPE {
+        HOST = 0x1,         //пакет от ПК для устройства
+        DEVICE = 0x2        //пакет от устройства для ПК
+    };
+
+    explicit SerialPacket(quint8 _cmd = 0, quint32 _addr = 0, quint8 _num = 0, PACK_TYPE _type = HOST);
 
     void clear();
 
 public:
+    PACK_TYPE type = HOST;
     quint8 cmd;
-    quint8 id;
-    union u_data {
-        quint8 bytes[4];
-        quint16 halfwords[2];
-        quint32 word;
-    } data;
-    //bool fExtended = false;
+    quint32 addr;
+    quint8 num = 0;
+    QByteArray data;
 };
 
 /**
@@ -36,17 +38,14 @@ class ProtocolManager : public QObject
     Q_OBJECT
 public:
     enum Commands {
-        GET_PARAM = 0x1,
-        SET_PARAM = 0x2,
-        SEND_PARAM = 0x4,
-        CONFIRM_PARAM = 0x8
+        WRITE_PARAM = 0xA8,
+        READ_PARAM = 0xA9
     };
 
     enum class ReceiverState {
         FRAME_ERROR,
         WAIT_START_FRAME,
         WAIT_CMD,
-        WAIT_ID,
         DATA_FLOW,
         WAIT_CRC
     };
@@ -69,8 +68,6 @@ public:
 
     int connectionLostTimeout() const;
     void setConnectionLostTimeout(int value);
-
-    quint8 computeCRC(const SerialPacket &pack);
 
 signals:
     void finished();
@@ -97,11 +94,15 @@ private:
     ReceiverState checkData(quint8 byte);
     ReceiverState checkCrc(quint8 byte);
 
+    quint8 tryToStuffByte(quint8 byte);
+
     void onValidPackReceive();
     void onCrcError();
     void onFormatError();
 
+    quint8 computeCRC(const SerialPacket &pack);
     quint8 crc8_xxx(quint8 *pcBlock, quint8 len);
+    quint8 crc8_sum(quint8 *pcBlock, quint8 len);
 
 private:
     QTimer *stateTimer, *onlineTimer;
@@ -111,15 +112,12 @@ private:
     CommunicationStatistic statistic;
 
     int checkConnectPeriod;
-    bool fNeedCrcCheck = false;
     int dataCounter = 0;
 
     enum {
-        FS_START = 0x11,     //символ "начало стандартного пакета"
-        FE_START = 0x12      //символ "начало расширенного пакета с CRC" (не используется)
+        STX = 0x02,
+        DLE = 0x10
     };
-
-    const int DATA_SIZE = 4;
 
     const quint8 POLY_CONST = 0x31;  /* x^8 + x^5 + x^4 + 1 */
 
