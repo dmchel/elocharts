@@ -3,18 +3,20 @@
 #include <QByteArray>
 #include <QTimer>
 
-SerialPacket::SerialPacket(quint8 _id, quint32 _data)
+SerialPacket::SerialPacket(quint8 _cmd, quint32 _addr, quint8 _num, PACK_TYPE _type)
 {
-    id = _id;
-    data.word = _data;
+    cmd = _cmd;
+    addr = _addr;
+    type = _type;
+    num = _num;
 }
 
 void SerialPacket::clear()
 {
     cmd = 0;
-    id = 0;
-    data.word = 0;
-    //fExtended = false;
+    addr = 0;
+    num = 0;
+    data.clear();
 }
 
 ProtocolManager::ProtocolManager(QObject *parent) : QObject(parent)
@@ -22,6 +24,7 @@ ProtocolManager::ProtocolManager(QObject *parent) : QObject(parent)
     rxBuffer.clear();
     rxState = ReceiverState::WAIT_START_FRAME;
     currPack.clear();
+    currPack.type = SerialPacket::DEVICE;
     qRegisterMetaType<SerialPacket>("SerialPacket");
     qRegisterMetaType<CommunicationStatistic>("CommunicationStatistic");
     checkConnectPeriod = 5000;
@@ -227,17 +230,43 @@ ProtocolManager::ReceiverState ProtocolManager::checkCrc(quint8 byte)
     return res;
 }
 
+/**
+ * @brief ProtocolManager::tryToStuffByte
+ *  Попытка выполнить байт-стаффинг. Если БС не нужен, то
+ * возвращается тот же самый байт, иначе его замена (без FESC)
+ * @param byte байт данных
+ * @return байт данных с учетом байт-стаффинга
+ */
+quint8 ProtocolManager::tryToStuffByte(quint8 byte)
+{
+    if(byte == FSTART) {
+        return TFSTART;
+    }
+    else if(byte == FESC) {
+        return TFEND;
+    }
+    else {
+        return byte;
+    }
+}
+
 quint8 ProtocolManager::computeCRC(const SerialPacket &pack)
 {
     quint8 crc = 0;
     QByteArray crcData;
-    crcData.append(FS_START);
-    crcData.append(pack.cmd);
-    crcData.append(pack.id);
-    for(int i = 0; i < 4; i++) {
-        crcData.append(pack.data.bytes[i]);
+    if(pack.type == SerialPacket::HOST) {
+        crcData.append(pack.cmd);
+        crcData.append(pack.addr & 0xFF);
+        crcData.append((pack.addr >> 8) & 0xFF);
+        crcData.append((pack.addr >> 16) & 0xFF);
+        crcData.append((pack.addr >> 24) & 0xFF);
+        crcData.append(pack.num);
     }
-    crc = crc8_xxx(reinterpret_cast<quint8*>(crcData.data()), crcData.size());
+    for(int i = 0; i < pack.data.size(); i++) {
+        crcData.append(pack.data[i]);
+    }
+    //crc = crc8_xxx(reinterpret_cast<quint8*>(crcData.data()), crcData.size());
+    crc = crc8_sum(reinterpret_cast<quint8*>(crcData.data()), crcData.size());
     return crc;
 }
 
@@ -283,4 +312,13 @@ quint8 ProtocolManager::crc8_xxx(quint8 *pcBlock, quint8 len)
         crc = crc8Table[crc ^ *pcBlock++];
     }
     return crc;
+}
+
+quint8 ProtocolManager::crc8_sum(quint8 *pcBlock, quint8 len)
+{
+    quint8 crc = 0;
+    for(quint8 i = 0; i < len; i++) {
+        crc += pcBlock[i];
+    }
+    return (~crc);
 }

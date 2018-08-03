@@ -5,6 +5,7 @@
 #include <QColor>
 #include <QString>
 #include <QList>
+#include <QJsonObject>
 
 class ParamDataItem
 {
@@ -14,6 +15,7 @@ public:
                   qreal pFactor = 1.0, qreal pShift = 0.0, qreal pValue = 0.0,
                   int pRawValue = 0, bool isActive = false, bool fGraph = false,
                   QColor color = QColor(Qt::blue));
+    ParamDataItem(const QJsonObject &jsonData);
 
     int id;             //идентификатор параметра
     QString name;       //имя параметра
@@ -43,9 +45,12 @@ public:
     //~ChartRecordModel();
 
     void addRecord(const ParamDataItem &record);
+    void updateRecord(int id, int value);
     void removeRecord(const ParamDataItem &record);
     void removeRecord(int index);
     void rewriteRecord(int index, const ParamDataItem &rwRecord);
+
+    ParamDataItem recordById(int id);
 
     QList<ParamDataItem> readAllData();
     void removeAll();
@@ -58,10 +63,16 @@ public:
 
     bool setData(const QModelIndex &index, const QVariant &value, int role);
 
+signals:
+    void recordChanged(const QModelIndex &index);
+
+private:
+    ParamDataItem *getRecordRefById(int id);
+    int getRecordRowById(int id);
+
 private:
     QList<ParamDataItem> records;
 
-private:
     const int MAX_COLUMN_NUM = 9;
 
 };

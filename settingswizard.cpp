@@ -5,11 +5,23 @@
 
 SettingsWizard::SettingsWizard(QObject *parent) : QObject(parent)
 {
-    mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "VSU", "display", this);
-    backupSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "VSU", "display_backup", this);
+    //mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName, this);
+    mainSettings = new QSettings("elochart.ini", QSettings::IniFormat, this);
+    //backupSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName + "_backup", this);
+    backupSettings = new QSettings("elochart_backup.ini", QSettings::IniFormat, this);
     fBackupNeedUpdate = false;
     initErrorString = "";
     initSettings();
+}
+
+void SettingsWizard::setApplicationName(const QString &name)
+{
+    appName = name;
+}
+
+void SettingsWizard::setOrganizationName(const QString &name)
+{
+    orgName = name;
 }
 
 /**
@@ -114,6 +126,16 @@ bool SettingsWizard::checkValueExist(const QString &key)
     return (mainSettings->contains(key));
 }
 
+QStringList SettingsWizard::readAllKeys()
+{
+    return mainSettings->allKeys();
+}
+
+QStringList SettingsWizard::readAllGroups()
+{
+    return mainSettings->childGroups();
+}
+
 /**
  * @brief SettingsWizard::saveValue
  * @param key
@@ -203,7 +225,7 @@ void SettingsWizard::updateBackupFile() {
         fBackupNeedUpdate = false;
         return;
     }
-    QFile backupTempFile("display_temp.ini");
+    QFile backupTempFile(appName + "_temp.ini");
     if(backupTempFile.open(QIODevice::ReadOnly)) {
         backupTempFile.remove();
     }
@@ -255,7 +277,7 @@ void SettingsWizard::initSettings()
             //после копирования производится повторное чтение файла настроек
             else {
                 delete mainSettings;
-                mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "VSU", "display", this);
+                mainSettings = new QSettings(QSettings::IniFormat, QSettings::UserScope, orgName, appName, this);
                 keysList = mainSettings->allKeys();
             }
         }

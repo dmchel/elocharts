@@ -6,9 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>399</width>
-    <height>440</height>
+    <width>302</width>
+    <height>282</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>302</width>
+    <height>282</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>302</width>
+    <height>282</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Создать новый параметр</string>
@@ -16,9 +28,9 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>390</y>
-     <width>341</width>
+     <x>20</x>
+     <y>240</y>
+     <width>271</width>
      <height>32</height>
     </rect>
    </property>
@@ -29,18 +41,18 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>10</y>
-     <width>351</width>
-     <height>351</height>
+     <width>281</width>
+     <height>211</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,2">
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="5,2">
       <item>
        <widget class="QLabel" name="idLabel">
         <property name="text">
@@ -68,7 +80,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,3">
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="4,1">
       <item>
        <widget class="QLabel" name="periodLabel">
         <property name="text">
@@ -77,12 +89,22 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="periodSpinBox"/>
+       <widget class="QSpinBox" name="periodSpinBox">
+        <property name="suffix">
+         <string> мс</string>
+        </property>
+        <property name="maximum">
+         <number>500000</number>
+        </property>
+        <property name="value">
+         <number>500</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,2">
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="10,1">
       <item>
        <widget class="QLabel" name="factorLabel">
         <property name="text">
@@ -91,12 +113,25 @@
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="factorSpinBox"/>
+       <widget class="QDoubleSpinBox" name="factorSpinBox">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="minimum">
+         <double>-100000000000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>100000000000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="4,2">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="4,1">
       <item>
        <widget class="QLabel" name="shiftLabel">
         <property name="text">
@@ -105,7 +140,17 @@
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="shiftSpinBox"/>
+       <widget class="QDoubleSpinBox" name="shiftSpinBox">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+        <property name="minimum">
+         <double>-1000000000.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>1000000000.000000000000000</double>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

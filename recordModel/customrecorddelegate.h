@@ -8,7 +8,7 @@ class CustomRecordDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    CustomRecordDelegate(QObject *parent = 0);
+    CustomRecordDelegate(QObject *parent = Q_NULLPTR);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 

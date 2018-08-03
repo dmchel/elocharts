@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -18,8 +18,8 @@
   </property>
   <property name="baseSize">
    <size>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </size>
   </property>
   <property name="font">
@@ -31,78 +31,90 @@
   <property name="windowTitle">
    <string>ELO Charts</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>260</y>
-      <width>791</width>
-      <height>291</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Параметры</string>
-    </property>
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>771</width>
-       <height>251</height>
-      </rect>
-     </property>
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>769</width>
-        <height>249</height>
-       </rect>
-      </property>
-      <widget class="QTableView" name="tableView">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>751</width>
-         <height>231</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>781</width>
-      <height>251</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Графики</string>
-    </property>
-   </widget>
-  </widget>
+  <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1024</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="paramMenu">
+    <property name="title">
+     <string>Параметры</string>
+    </property>
+    <addaction name="addParamAction"/>
+    <addaction name="deleteParamAction"/>
+    <addaction name="action"/>
+   </widget>
+   <widget class="QMenu" name="graphMenu">
+    <property name="title">
+     <string>Графики</string>
+    </property>
+    <addaction name="runAction"/>
+    <addaction name="stopAction"/>
+    <addaction name="resetAction"/>
+    <addaction name="fitInAction"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Справка</string>
+    </property>
+    <addaction name="action_2"/>
+    <addaction name="actionAbout_Qt"/>
+   </widget>
+   <addaction name="paramMenu"/>
+   <addaction name="graphMenu"/>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="addParamAction">
+   <property name="text">
+    <string>Добавить новый параметр</string>
+   </property>
+  </action>
+  <action name="deleteParamAction">
+   <property name="text">
+    <string>Удалить выбранные параметры</string>
+   </property>
+  </action>
+  <action name="runAction">
+   <property name="text">
+    <string>Запустить</string>
+   </property>
+  </action>
+  <action name="stopAction">
+   <property name="text">
+    <string>Остановить</string>
+   </property>
+  </action>
+  <action name="resetAction">
+   <property name="text">
+    <string>Сброс</string>
+   </property>
+  </action>
+  <action name="fitInAction">
+   <property name="text">
+    <string>Вписать все графики в экран</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>Сброс</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>О программе</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

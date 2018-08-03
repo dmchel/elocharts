@@ -1,5 +1,4 @@
 #include <QtWidgets/QVBoxLayout>
-#include <QtCharts/QValueAxis>
 #include <QDebug>
 
 #include "chartwidget.h"
@@ -29,6 +28,7 @@ void LiveChart::mouseReleaseEvent(QMouseEvent *event)
 void LiveChart::mouseMoveEvent(QMouseEvent *event)
 {
     if(!fLeftButton) {
+        prevMousePos = event->pos();
         event->ignore();
     }
     else {
@@ -37,20 +37,7 @@ void LiveChart::mouseMoveEvent(QMouseEvent *event)
         }
         else {
             QPoint point = event->pos() - prevMousePos;
-            qreal dx = 0.0, dy = 0.0;
-            if(point.rx() > 0) {
-                dx = -1.0;
-            }
-            else if(point.rx() < 0) {
-                dx = 1.0;
-            }
-            if(point.ry() > 0) {
-                dy = -1.0;
-            }
-            else if(point.ry() < 0) {
-                dy = 1.0;
-            }
-            this->chart()->scroll(0, dy);
+            this->chart()->scroll(0, (-1) * (point.ry() / 10.0));
         }
     }
 }
@@ -59,20 +46,16 @@ ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent)
 {
     mainChart = new QChart();
     liveChart = new LiveChart(mainChart);
-    liveChart->setMinimumSize(800, 600);
-    m_series = new QLineSeries;
-    mainChart->addSeries(m_series);
-    QValueAxis *axisX = new QValueAxis;
-    axisX->setRange(0, 10000);
+    liveChart->setMinimumSize(640, 480);
+    axisX = new QValueAxis;
+    axisX->setRange(0, CHART_UPDATE_INTERVAL_MS);
     axisX->setLabelFormat("%g");
-    axisX->setTitleText("t, ms");
-    QValueAxis *axisY = new QValueAxis;
+    axisX->setTitleText(tr("Время, мс"));
+    axisY = new QValueAxis;
     axisY->setRange(0, 1000);
-    axisY->setTitleText("Signal, mV");
-    mainChart->setAxisX(axisX, m_series);
-    mainChart->setAxisY(axisY, m_series);
+    mainChart->setAxisX(axisX);
+    mainChart->setAxisY(axisY);
     mainChart->legend()->hide();
-    mainChart->setTitle("ELO Chart data");
     mainChart->setTheme(QChart::ChartThemeDark);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -126,26 +109,62 @@ void ChartWidget::wheelEvent(QWheelEvent *event)
     event->accept();
 }
 
-void ChartWidget::addDataToChart(qreal x, qreal y)
+void ChartWidget::addDataToChart(int id, qreal x, qreal y)
 {
-    m_series->append(x, y);
+    if(seriesMap.contains(id)) {
+        seriesMap.value(id)->append(x, y);
+    }
+    else {
+        seriesMap.insert(id, createNewLineSeries());
+        seriesMap.value(id)->append(x, y);
+    }
+    updateVerticalAxisRange(y);
     qreal dx = x - prevPoint.rx();
-    totalChartTime += dx;
-    if(totalChartTime > 9000.0) {
-        mainChart->scroll(dx / 20, 0);
+    intervalChartTime += dx;
+    if(intervalChartTime > CHART_UPDATE_INTERVAL_MS) {
+        mainChart->scroll(mainChart->rect().width() - 100, 0);
+        intervalChartTime = 0;
     }
     prevPoint.setX(x);
     mainChart->update();
 }
 
-void ChartWidget::removeDataFromChart(qreal x, qreal y)
+void ChartWidget::removeDataFromChart(int id, qreal x, qreal y)
 {
-    m_series->remove(x, y);
-    mainChart->update();
+    if(seriesMap.contains(id)) {
+        seriesMap.value(id)->remove(x, y);
+        mainChart->update();
+    }
 }
 
 void ChartWidget::clearChart()
 {
-    m_series->clear();
+    for(auto series : seriesMap) {
+        series->clear();
+    }
     mainChart->update();
+    prevPoint = QPointF(0.0, 0.0);
+}
+
+/**
+ * Private methods
+ */
+
+QLineSeries *ChartWidget::createNewLineSeries()
+{
+    QLineSeries *ls = new QLineSeries();
+    mainChart->addSeries(ls);
+    ls->attachAxis(axisX);
+    ls->attachAxis(axisY);
+    return ls;
+}
+
+void ChartWidget::updateVerticalAxisRange(qreal y)
+{
+    if(y > axisY->max()) {
+        axisY->setMax(y * 1.05);
+    }
+    else if(y < axisY->min()) {
+        axisY->setMin(y * 1.05);
+    }
 }

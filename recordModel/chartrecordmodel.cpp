@@ -2,7 +2,16 @@
 
 ParamDataItem::ParamDataItem()
 {
-
+    id = 0;
+    name = "none";
+    period = 0;
+    factor = 0.0;
+    shift = 0.0;
+    value = 0.0;
+    rawValue = 0;
+    fActive = false;
+    fShowGraph = false;
+    graphColor = QColor(0, 0, 0);
 }
 
 ParamDataItem::ParamDataItem(int pId, const QString &pName, int pPeriod,
@@ -22,6 +31,29 @@ ParamDataItem::ParamDataItem(int pId, const QString &pName, int pPeriod,
     graphColor = color;
 }
 
+ParamDataItem::ParamDataItem(const QJsonObject &jsonData)
+{
+    id = 0;
+    name = "none";
+    period = 0;
+    factor = 0.0;
+    shift = 0.0;
+    value = 0.0;
+    rawValue = 0;
+    fActive = false;
+    fShowGraph = false;
+    graphColor = QColor(0, 0, 0);
+    if(!jsonData.isEmpty()) {
+        id = jsonData["id"].toInt();
+        name = jsonData["name"].toString();
+        period = jsonData["period"].toInt();
+        factor = jsonData["factor"].toDouble();
+        shift = jsonData["shift"].toDouble();
+        fShowGraph = jsonData["fShowGraph"].toBool();
+        graphColor = jsonData["color"].toVariant().value<QColor>();
+    }
+}
+
 ChartRecordModel::ChartRecordModel(QObject *parent) : QAbstractTableModel(parent)
 {
     records.clear();
@@ -31,6 +63,27 @@ void ChartRecordModel::addRecord(const ParamDataItem &record) {
     beginResetModel();
     records.append(record);
     endResetModel();
+}
+
+/**
+ * @brief ChartRecordModel::updateRecord
+ *  Обновить значение записи если она существует (проверка по id)
+ * @param record
+ */
+void ChartRecordModel::updateRecord(int id, int value)
+{
+    ParamDataItem *pItem = getRecordRefById(id);
+    if(pItem != Q_NULLPTR) {
+        int row = getRecordRowById(id);
+        setData(this->index(row, 6), value, Qt::EditRole);
+        qreal finalValue = value * pItem->factor + pItem->shift;
+        setData(this->index(row, 5), finalValue, Qt::EditRole);
+        emit recordChanged(this->index(row, 6));
+        emit recordChanged(this->index(row, 5));
+        //beginResetModel();
+        //pItem->value = value * pItem->factor + pItem->shift;
+        //endResetModel();
+    }
 }
 
 void ChartRecordModel::removeRecord(const ParamDataItem &record) {
@@ -58,6 +111,16 @@ void ChartRecordModel::rewriteRecord(int index, const ParamDataItem &rwRecord)
         records[index] = rwRecord;
     }
     endResetModel();
+}
+
+ParamDataItem ChartRecordModel::recordById(int id)
+{
+    ParamDataItem item;
+    ParamDataItem *pItem = getRecordRefById(id);
+    if(pItem != Q_NULLPTR) {
+        item = *pItem;
+    }
+    return item;
 }
 
 QList<ParamDataItem> ChartRecordModel::readAllData()
@@ -199,6 +262,7 @@ bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, 
                 records[row].graphColor = value.value<QColor>();
                 return true;
             }
+            emit dataChanged(index, index);
         }
     }
     return false;
@@ -207,4 +271,36 @@ bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, 
 /**
   Private methods
  */
+
+/**
+ * @brief ChartRecordModel::getRecordRefById
+ *  Получить указатель на запись с идентификатором id.
+ * Если такой записи не существует возвращается Q_NULLPTR.
+ * @param id
+ * @return pItem указатель на запись
+ */
+ParamDataItem *ChartRecordModel::getRecordRefById(int id)
+{
+    ParamDataItem *pItem = Q_NULLPTR;
+    int i = 0;
+    for(auto &rec : records) {
+        if(rec.id == id) {
+            pItem = &records[i];
+        }
+        i++;
+    }
+    return pItem;
+}
+
+int ChartRecordModel::getRecordRowById(int id)
+{
+    int row = 0;
+    for(auto &rec : records) {
+        if(rec.id == id) {
+            break;
+        }
+        row++;
+    }
+    return row;
+}
 

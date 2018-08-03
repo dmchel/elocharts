@@ -2,6 +2,7 @@
 #define CREATEPARAMDIALOG_H
 
 #include <QDialog>
+#include <QJsonObject>
 
 namespace Ui {
 class CreateParamDialog;
@@ -14,6 +15,8 @@ class CreateParamDialog : public QDialog
 public:
     explicit CreateParamDialog(QWidget *parent = 0);
     ~CreateParamDialog();
+
+    QJsonObject jsonData() const;
 
 private:
     Ui::CreateParamDialog *ui;
