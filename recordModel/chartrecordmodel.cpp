@@ -70,19 +70,28 @@ void ChartRecordModel::addRecord(const ParamDataItem &record) {
  *  Обновить значение записи если она существует (проверка по id)
  * @param record
  */
-void ChartRecordModel::updateRecord(int id, int value)
+void ChartRecordModel::updateRecordValue(int id, int value)
 {
     ParamDataItem *pItem = getRecordRefById(id);
     if(pItem != Q_NULLPTR) {
+        pItem->rawValue = value;
+        pItem->value = value * pItem->factor + pItem->shift;
+        //setData(this->index(row, 6), value, Qt::EditRole);
+        //qreal finalValue = value * pItem->factor + pItem->shift;
+        //setData(this->index(row, 5), finalValue, Qt::EditRole);
         int row = getRecordRowById(id);
-        setData(this->index(row, 6), value, Qt::EditRole);
-        qreal finalValue = value * pItem->factor + pItem->shift;
-        setData(this->index(row, 5), finalValue, Qt::EditRole);
         emit recordChanged(this->index(row, 6));
         emit recordChanged(this->index(row, 5));
-        //beginResetModel();
-        //pItem->value = value * pItem->factor + pItem->shift;
-        //endResetModel();
+    }
+}
+
+void ChartRecordModel::updateRecordColor(int id, const QColor &color)
+{
+    ParamDataItem *pItem = getRecordRefById(id);
+    if(pItem != Q_NULLPTR) {
+        pItem->graphColor = color;
+        int row = getRecordRowById(id);
+        emit recordChanged(this->index(row, 9));
     }
 }
 

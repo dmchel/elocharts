@@ -112,7 +112,7 @@ void MainWindow::consoleClear()
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
-    case Qt::Key_F1:
+    case Qt::Key_F12:
         if(console->isVisible()) {
             console->hide();
         }

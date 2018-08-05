@@ -2,6 +2,7 @@
 #define PROTOCOLMANAGER_H
 
 #include <QObject>
+#include <QQueue>
 
 class QTimer;
 
@@ -43,11 +44,11 @@ public:
     };
 
     enum class ReceiverState {
-        FRAME_ERROR,
-        WAIT_START_FRAME,
-        WAIT_CMD,
+        FREE,
+        WAIT_STATUS,
         DATA_FLOW,
-        WAIT_CRC
+        WAIT_CRC,
+        ERROR
     };
 
     struct CommunicationStatistic {
@@ -88,9 +89,7 @@ private:
     void transferTimeout();
     void onlineTimeout();
     void dataHandler();
-    ReceiverState checkStartMark(quint8 byte);
-    ReceiverState checkCmd(quint8 byte);
-    ReceiverState checkId(quint8 byte);
+    ReceiverState checkStatus(quint8 byte);
     ReceiverState checkData(quint8 byte);
     ReceiverState checkCrc(quint8 byte);
 
@@ -108,7 +107,9 @@ private:
     QTimer *stateTimer, *onlineTimer;
     QByteArray rxBuffer;
     ReceiverState rxState;
-    SerialPacket currPack;
+    QQueue<SerialPacket> txQueue;
+
+    SerialPacket currRxPack;
     CommunicationStatistic statistic;
 
     int checkConnectPeriod;

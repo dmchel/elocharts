@@ -15,10 +15,12 @@ void ELOPlotter::addDataToPlot(int id, qreal x, qreal y)
     else {
         QCPGraph *newGraph = this->addGraph();
         graphMap.insert(id, newGraph);
-        newGraph->setPen(nextDefaultColor());
+        QColor plc = nextDefaultColor();
+        newGraph->setPen(plc);
         newGraph->addData(x, y);
-        //this->graph(id - 1)->addData(x, y);
+        emit plotColorChanged(id, plc);
     }
+    updateRanges(x, y);
     this->replot();
 }
 
@@ -27,7 +29,13 @@ void ELOPlotter::clearPlot()
     this->clearGraphs();
 }
 
-void ELOPlotter::setPlotColor(int id, QColor color)
+/**
+ * @brief ELOPlotter::setPlotColor
+ * @param id - unique identificator for plot
+ * @param color - color for plot
+ * Note: signal plotColorChanged not emitted in this case.
+ */
+void ELOPlotter::setPlotColor(int id, const QColor &color)
 {
     if(graphMap.contains(id)) {
         graphMap.value(id)->setPen(color);
@@ -40,8 +48,24 @@ void ELOPlotter::setPlotColor(int id, QColor color)
 
 void ELOPlotter::initPlotter()
 {
-    this->setBackground(QBrush(Qt::gray));
-    this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    this->setBackground(QBrush(QColor(0, 0, 0)));
+    this->xAxis->setBasePen(QPen(Qt::white));
+    this->xAxis->setTickPen(QPen(Qt::white));
+    this->xAxis->grid()->setVisible(true);
+    this->xAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
+    this->xAxis->setTickLabelColor(Qt::white);
+    this->xAxis->setLabelColor(Qt::white);
+    this->yAxis->setBasePen(QPen(Qt::white));
+    this->yAxis->setTickPen(QPen(Qt::white));
+    this->yAxis->setSubTickPen(QPen(Qt::white));
+    //this->yAxis->grid()->setSubGridVisible(true);
+    this->yAxis->setTickLabelColor(Qt::white);
+    this->yAxis->setLabelColor(Qt::white);
+    this->yAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
+    //this->yAxis->grid()->setSubGridPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
+    this->xAxis->setRange(0.0, 10000.0);
+    this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables
+                          | QCP::iSelectItems | QCP::iSelectAxes);
 }
 
 void ELOPlotter::initColorList()
@@ -52,6 +76,7 @@ void ELOPlotter::initColorList()
     plotColors.append(Qt::cyan);
     plotColors.append(Qt::magenta);
     plotColors.append(Qt::yellow);
+    plotColors.append(QColor(255, 128, 0));
     plotColors.append(Qt::white);
     plotColors.append(Qt::darkRed);
     plotColors.append(Qt::darkGreen);
@@ -72,5 +97,19 @@ const QColor &ELOPlotter::nextDefaultColor() const
     }
     else {
         return plotColors.at(0);
+    }
+}
+
+void ELOPlotter::updateRanges(qreal x, qreal y)
+{
+    if(y > this->yAxis->range().upper) {
+        this->yAxis->setRangeUpper(1.1 * y);
+    }
+    else if(y < this->yAxis->range().lower) {
+        this->yAxis->setRangeLower(1.1 * y);
+    }
+    //times goes only forward
+    if(x > this->xAxis->range().upper) {
+        this->xAxis->moveRange(this->xAxis->range().size());
     }
 }

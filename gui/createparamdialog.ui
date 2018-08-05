@@ -61,7 +61,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="idSpinBox"/>
+       <widget class="QSpinBox" name="idSpinBox">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>255</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

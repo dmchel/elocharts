@@ -75,11 +75,17 @@ void CoreServer::openSerialPort(const QString &name)
         return;
     }
     SerialHandler::SerialSettings settings;
-    settings.baudRate = QSerialPort::Baud115200;
+    settings.baudRate = QSerialPort::Baud9600;
     settings.dataBits = QSerialPort::Data8;
     settings.flowControl = QSerialPort::NoFlowControl;
-    settings.name = name;
-    //settings.name = ports.at(0).portName();
+
+    if(name.isEmpty()) {
+        settings.name = ports.at(0).portName();
+    }
+    else {
+        settings.name = name;
+    }
+
     settings.parity = QSerialPort::NoParity;
     settings.stopBits = QSerialPort::OneStop;
     serialDevice->setSettings(settings);
@@ -109,9 +115,29 @@ void CoreServer::openSerialPort(const QString &name)
     serialThread->start(QThread::TimeCriticalPriority);
 }
 
+/**
+ * @brief CoreServer::closeSerialPort
+ */
 void CoreServer::closeSerialPort()
 {
     emit stopSerial();
+}
+
+void CoreServer::addParamData(const QJsonObject &data)
+{
+    if(data.isEmpty()) {
+        return;
+    }
+    QJsonObject paramData(data);
+    paramData.insert("fShowGraph", false);
+    paramData.insert("color", QJsonValue::fromVariant(QVariant((QColor(Qt::blue)))));
+    chartModel->addRecord(paramData);
+    writeParamToSettings(paramData);
+}
+
+void CoreServer::onChartColorChange(int id, const QColor &color)
+{
+    chartModel->updateRecordColor(id, color);
 }
 
 void CoreServer::shellListenUart()
@@ -154,6 +180,9 @@ void CoreServer::shellUartStatus()
         statList.append("\r\n");
         emit sendConsoleText(statList.join(""));
     }
+    else {
+        emit sendConsoleText(tr("Port disconnected.\r\n"));
+    }
 }
 
 void CoreServer::shellSendUart(const QByteArray &data)
@@ -167,6 +196,9 @@ void CoreServer::shellPrintPorts()
 {
     QStringList portList;
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    if(ports.isEmpty()) {
+        emit sendConsoleText("There is no available COM ports...\r\n");
+    }
     for(auto port : ports) {
         portList.append(port.portName() + " " + (port.isBusy() ? "busy " : "free "));
     }
@@ -238,10 +270,21 @@ void CoreServer::writeParamToSettings(const ParamDataItem &item)
     }
 }
 
-void CoreServer::onNewChartData(RawData value)
+void CoreServer::writeParamToSettings(const QJsonObject &obj)
 {
-    chartModel->updateRecord(value.id, value.dot.y());
-    emit chartData(value.id, value.dot.x(), value.dot.y());
+    if(obj.isEmpty()) {
+        return;
+    }
+    QString prefix = "parameter" + QString::number(obj["id"].toInt()) + "/";
+    for(auto key : obj.keys()) {
+        settings->saveValue(prefix + key, obj[key].toVariant());
+    }
+}
+
+void CoreServer::onNewChartData(const RawData &value)
+{
+    chartModel->updateRecordValue(value.id, value.dot.y());
+    emit chartData(value.id, value.dot.x(), chartModel->recordById(value.id).value);
 }
 
 void CoreServer::checkConnection()

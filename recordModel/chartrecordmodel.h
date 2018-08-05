@@ -45,11 +45,12 @@ public:
     //~ChartRecordModel();
 
     void addRecord(const ParamDataItem &record);
-    void updateRecord(int id, int value);
     void removeRecord(const ParamDataItem &record);
     void removeRecord(int index);
     void rewriteRecord(int index, const ParamDataItem &rwRecord);
 
+    void updateRecordValue(int id, int value);
+    void updateRecordColor(int id, const QColor &color);
     ParamDataItem recordById(int id);
 
     QList<ParamDataItem> readAllData();

@@ -30,12 +30,12 @@ void ProtocolData::resetTimestamp()
 void ProtocolData::packetHandler(const SerialPacket &pack)
 {
     switch (pack.cmd) {
-    case ProtocolManager::SEND_PARAM:
-        saveParam(pack.id, pack.data.word);
-        break;
-    case ProtocolManager::CONFIRM_PARAM:
+    //case ProtocolManager::SEND_PARAM:
+    //    saveParam(pack.id, pack.data.word);
+    //    break;
+    //case ProtocolManager::CONFIRM_PARAM:
         //TODO
-        break;
+     //   break;
     default:
         break;
     }
@@ -50,9 +50,14 @@ void ProtocolData::packetHandler(const SerialPacket &pack)
 void ProtocolData::setParamOnDevice(int id, quint32 val)
 {
     SerialPacket pack;
-    pack.cmd = ProtocolManager::SET_PARAM;
-    pack.id = id;
-    pack.data.word = val;
+    pack.type = SerialPacket::HOST;
+    pack.cmd = ProtocolManager::WRITE_PARAM;
+    pack.num = 4;
+    pack.addr = 0x20000000 + id;
+    pack.data.append(val & 0xFF);
+    pack.data.append((val >> 8) & 0xFF);
+    pack.data.append((val >> 16) & 0xFF);
+    pack.data.append((val >> 24) & 0xFF);
     emit generatePacket(pack);
 }
 
@@ -64,8 +69,9 @@ void ProtocolData::setParamOnDevice(int id, quint32 val)
 void ProtocolData::requesetParamFromDevice(int id)
 {
     SerialPacket pack;
-    pack.cmd = ProtocolManager::GET_PARAM;
-    pack.id = id;
+    pack.cmd = ProtocolManager::READ_PARAM;
+    pack.num = 4;
+    pack.addr = 0x20000000 + id;
     emit generatePacket(pack);
 }
 

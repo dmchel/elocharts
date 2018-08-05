@@ -14,7 +14,7 @@ class SettingsWizard;
 
 /**
  * @brief The CoreServer class
- *  Core class for application buisness logic.
+ *  Core class for application business logic.
  */
 class CoreServer : public QObject
 {
@@ -39,12 +39,16 @@ signals:
     //shell signals
     void sendUartRxData(const QByteArray &data);
     void sendUartTxData(const QByteArray &data);
-
+    //for graphics
     void chartData(int id, qreal x, qreal y);
+    void sendChartColor(int id, const QColor &color);
 
 public slots:
-    void openSerialPort(const QString &name);
+    void openSerialPort(const QString &name = "");
     void closeSerialPort();
+    //gui data slots
+    void addParamData(const QJsonObject &data);
+    void onChartColorChange(int id, const QColor &color);
     //shell handlers
     void shellListenUart();
     void shellUartStatus();
@@ -53,7 +57,7 @@ public slots:
     void shellVersionRequest();
 
 private slots:
-    void onNewChartData(RawData value);
+    void onNewChartData(const RawData &value);
     void checkConnection();
 
 private:
@@ -61,6 +65,7 @@ private:
     void onCloseSerialPort();
     void readSettings();
     void writeParamToSettings(const ParamDataItem &item);
+    void writeParamToSettings(const QJsonObject &obj);
 
 private:
     ProtocolManager *protocol = Q_NULLPTR;

@@ -17,19 +17,19 @@ int main(int argc, char *argv[])
 
     Shell shell;
     MainWindow w;
-    ChartWidget chart;
     ELOPlotter plot;
 
     CoreServer server;
     server.setSoftVersion(progVersion);
     //server connections
-    //QObject::connect(&server, &CoreServer::chartData, &chart, &ChartWidget::addDataToChart);
+    QObject::connect(&plot, &ELOPlotter::plotColorChanged, &server, &CoreServer::onChartColorChange);
     QObject::connect(&server, &CoreServer::chartData, &plot, &ELOPlotter::addDataToPlot);
     QObject::connect(&server, &CoreServer::sendConnectionStatus, &w, &MainWindow::updateConnectionStatus);
     QObject::connect(&server, &CoreServer::connectionInfoChanged, &w, &MainWindow::updateConnectionInfo);
     QObject::connect(&server, &CoreServer::sendUartRxData, &w, &MainWindow::consolePutData);
     QObject::connect(&server, &CoreServer::sendUartRxData, &shell, &Shell::receiveData);
     QObject::connect(&server, &CoreServer::sendConsoleText, &w, &MainWindow::consolePrintText);
+    QObject::connect(&w, &MainWindow::sendParamData, &server, &CoreServer::addParamData);
     //shell connections
     QObject::connect(&w, &MainWindow::sendShellCommand, &shell, &Shell::hNewCommand);
     QObject::connect(&shell, &Shell::ePrintString, &w, &MainWindow::consolePrintText);
@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
     w.setTableModel(server.dataModel());
     w.setTableDelegate(server.dataDelegate());
     w.show();
-    //plot.show();
 
     return app.exec();
 }

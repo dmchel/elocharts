@@ -39,6 +39,8 @@ QWidget *CustomRecordDelegate::createEditor(QWidget *parent, const QStyleOptionV
     else if((index.column() == 3) || (index.column() == 4)) {
         QDoubleSpinBox *editor = new QDoubleSpinBox(parent);
         editor->setFrame(false);
+        editor->setRange(-10e12, 10e12);
+        editor->setDecimals(3);
         editor->setSingleStep(0.001);
         return editor;
     }
@@ -54,10 +56,17 @@ QWidget *CustomRecordDelegate::createEditor(QWidget *parent, const QStyleOptionV
         editor->addItem("red", QColor(255, 0, 0));
         editor->addItem("green", QColor(0, 255, 0));
         editor->addItem("blue", QColor(0, 0, 255));
-        editor->addItem("yellow", QColor(255, 255, 0));
         editor->addItem("cyan", QColor(0, 255, 255));
         editor->addItem("magenta", QColor(255, 0, 255));
+        editor->addItem("yellow", QColor(255, 255, 0));
         editor->addItem("orange", QColor(255, 128, 0));
+        editor->addItem("white", QColor(Qt::white));
+        editor->addItem("darkRed", QColor(Qt::darkRed));
+        editor->addItem("darkGreen", QColor(Qt::darkGreen));
+        editor->addItem("darkBlue", QColor(Qt::darkBlue));
+        editor->addItem("darkCyan", QColor(Qt::darkCyan));
+        editor->addItem("darkMagenta", QColor(Qt::darkMagenta));
+        editor->addItem("darkYellow", QColor(Qt::darkYellow));
         return editor;
     }
     else {
@@ -88,6 +97,7 @@ void CustomRecordDelegate::setEditorData(QWidget *editor, const QModelIndex &ind
     else if((index.column() == 7) || (index.column() == 8)) {
         QCheckBox *checkEditor = static_cast<QCheckBox *>(editor);
         checkEditor->setChecked(index.data().toBool());
+        checkEditor->setText(checkEditor->isChecked() ? ("true") : ("false"));
     }
     else if(index.column() == 9) {
         QComboBox *colorBox = static_cast<QComboBox *>(editor);
@@ -108,23 +118,6 @@ void CustomRecordDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     if(!index.isValid()) {
         return;
     }
-    //color column
-    if(index.column() == 1) {
-        QSpinBox *timestEdit = static_cast<QSpinBox *>(editor);
-        int timest = timestEdit->value();
-        model->setData(index, timest, Qt::EditRole);
-    }
-    else if(index.column() == 2) {
-        QSpinBox *durationEdit = static_cast<QSpinBox *>(editor);
-        int duration = durationEdit->value();
-        model->setData(index, duration, Qt::EditRole);
-    }
-    else if(index.column() == 3) {
-         QComboBox *colorEdit = static_cast<QComboBox *>(editor);
-         QString colorString = colorEdit->currentText();
-         model->setData(index, colorString, Qt::EditRole);
-    }
-
     if(index.column() == 0) {
         QSpinBox *idEdit = static_cast<QSpinBox *>(editor);
         model->setData(index, idEdit->value(), Qt::EditRole);
