@@ -12,7 +12,7 @@ ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
     testTimer = new QTimer(this);
     testTimer->setTimerType(Qt::PreciseTimer);
     connect(testTimer, &QTimer::timeout, this, &ProtocolData::onTestTimerTimeout);
-    testTimer->start(100);
+    testTimer->start(25);
     qsrand(42);
     timestamp = QDateTime::currentMSecsSinceEpoch();
 }
@@ -29,13 +29,27 @@ void ProtocolData::resetTimestamp()
  */
 void ProtocolData::packetHandler(const SerialPacket &pack)
 {
+    int id = 0;
+    quint32 val = 0;
+
     switch (pack.cmd) {
-    //case ProtocolManager::SEND_PARAM:
-    //    saveParam(pack.id, pack.data.word);
-    //    break;
-    //case ProtocolManager::CONFIRM_PARAM:
-        //TODO
-     //   break;
+    case ProtocolManager::WRITE_PARAM:
+        //параметр успешно записан
+        if(pack.data.at(0) == -1) {
+            emit writeErrorOccured();
+        }
+        break;
+    case ProtocolManager::READ_PARAM:
+        id = (pack.addr - BASE_MEMORY_ADDR) / 4 + 1;
+        if((id > 0) && (pack.data.size() >= 4)) {
+            val = 0;
+            for(int i = 0; i < 4; i++) {
+                quint8 byte = pack.data.at(i);
+                val |= byte << (i * 8);
+            }
+            saveParam(id, pack.timestamp, val);
+        }
+        break;
     default:
         break;
     }
@@ -52,8 +66,8 @@ void ProtocolData::setParamOnDevice(int id, quint32 val)
     SerialPacket pack;
     pack.type = SerialPacket::HOST;
     pack.cmd = ProtocolManager::WRITE_PARAM;
-    pack.num = 4;
-    pack.addr = 0x20000000 + id;
+    pack.num = 3;
+    pack.addr = BASE_MEMORY_ADDR + id;
     pack.data.append(val & 0xFF);
     pack.data.append((val >> 8) & 0xFF);
     pack.data.append((val >> 16) & 0xFF);
@@ -69,9 +83,10 @@ void ProtocolData::setParamOnDevice(int id, quint32 val)
 void ProtocolData::requesetParamFromDevice(int id)
 {
     SerialPacket pack;
+    pack.type = SerialPacket::HOST;
     pack.cmd = ProtocolManager::READ_PARAM;
-    pack.num = 4;
-    pack.addr = 0x20000000 + id;
+    pack.num = 3;
+    pack.addr = 0x20000000 + (id - 1) * 4;
     emit generatePacket(pack);
 }
 
@@ -79,9 +94,8 @@ void ProtocolData::requesetParamFromDevice(int id)
  * Private methods
  */
 
-void ProtocolData::saveParam(int id, qint32 val)
+void ProtocolData::saveParam(int id, qint64 t, qint32 val)
 {
-    quint64 t = QDateTime::currentMSecsSinceEpoch();
     RawData newData;
     newData.id = id;
     newData.dot = QPointF(t - timestamp, val);
@@ -90,7 +104,7 @@ void ProtocolData::saveParam(int id, qint32 val)
 
 void ProtocolData::onTestTimerTimeout()
 {
-    quint64 t = QDateTime::currentMSecsSinceEpoch();
+    /*qint64 t = QDateTime::currentMSecsSinceEpoch();
     int x = 0;
     if(qSin(t - timestamp) < 0) {
         x = -1;
@@ -98,7 +112,13 @@ void ProtocolData::onTestTimerTimeout()
     else if(qSin(t - timestamp) > 0) {
         x = 1;
     }
-    saveParam(1, (qrand() % 1000));
-    saveParam(2, 250 * x);
-    saveParam(3, 125);
+    saveParam(1, t, (qrand() % 1000));
+    saveParam(2, t, 250 * x);
+    saveParam(3, t, 125);*/
+    static int param_id = 17;
+    requesetParamFromDevice(param_id);
+    param_id++;
+    if(param_id == 20) {
+        param_id = 17;
+    }
 }

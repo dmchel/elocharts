@@ -1,6 +1,7 @@
 #include "protocolmanager.h"
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QTimer>
 
 SerialPacket::SerialPacket(quint8 _cmd, quint32 _addr, quint8 _num, PACK_TYPE _type)
@@ -9,6 +10,7 @@ SerialPacket::SerialPacket(quint8 _cmd, quint32 _addr, quint8 _num, PACK_TYPE _t
     addr = _addr;
     type = _type;
     num = _num;
+    timestamp = QDateTime::currentMSecsSinceEpoch();
 }
 
 void SerialPacket::clear()
@@ -25,6 +27,8 @@ ProtocolManager::ProtocolManager(QObject *parent) : QObject(parent)
     rxState = ReceiverState::FREE;
     currRxPack.clear();
     currRxPack.type = SerialPacket::DEVICE;
+    currTxPack.clear();
+    currTxPack.type = SerialPacket::HOST;
     qRegisterMetaType<SerialPacket>("SerialPacket");
     qRegisterMetaType<CommunicationStatistic>("CommunicationStatistic");
     checkConnectPeriod = 5000;
@@ -88,9 +92,86 @@ void ProtocolManager::receiveData(const QByteArray &data)
  * @brief ProtocolManager::sendPacket
  * Отправка пакета данных в последовательный порт
  * @param pack пакет для отправки
- * ret массив данных для отправки (это для тестов)
+ * ret none
  */
-QByteArray ProtocolManager::sendPacket(const SerialPacket &pack)
+void ProtocolManager::sendPacket(const SerialPacket &pack)
+{
+    txQueue.enqueue(pack);
+    processQueue();
+}
+
+/**
+ * Private methods
+ */
+
+/**
+ * @brief ProtocolManager::transferTimeout
+ *  Receive timeout happens
+ */
+void ProtocolManager::transferTimeout()
+{
+    if(rxState != ReceiverState::FREE) {
+        rxState = ReceiverState::FRAME_ERROR;
+        statistic.timeoutErrors++;
+        statistic.overallErrors++;
+        //emit sendCommStatistic(statistic);
+    }
+}
+
+/**
+ * @brief ProtocolManager::onlineTimeout
+ *  Lost connection timeout happens
+ */
+void ProtocolManager::onlineTimeout()
+{
+    statistic.fConnected = false;
+    //emit sendCommStatistic(statistic);
+}
+
+/**
+ * @brief ProtocolManager::dataHandler
+ *  Byte-to-byte data handler
+ */
+void ProtocolManager::dataHandler()
+{
+    while(!rxBuffer.isEmpty()) {
+        quint8 c = rxBuffer[0];
+        switch (rxState) {
+        case ReceiverState::FREE:
+            //unexpected data
+            break;
+        case ReceiverState::DATA_FLOW:
+            rxState = checkData(c);
+            break;
+        case ReceiverState::WAIT_CRC:
+            rxState = checkCrc(c);
+            processQueue();
+            break;
+        case ReceiverState::FRAME_ERROR:
+            currRxPack.clear();
+            break;
+        default:
+            break;
+        }
+        rxBuffer.remove(0, 1);
+    }
+}
+
+/**
+ * @brief ProtocolManager::processQueue
+ *  Deal with TX queue
+ */
+void ProtocolManager::processQueue()
+{
+    if(!txQueue.isEmpty() && ((rxState == ReceiverState::FREE) || (rxState == ReceiverState::FRAME_ERROR))) {
+        currTxPack = txQueue.dequeue();
+        packTransmitter(currTxPack);
+        currRxPack.clear();
+        rxState = ReceiverState::DATA_FLOW;
+    }
+}
+
+void ProtocolManager::packTransmitter(const SerialPacket &pack)
 {
     QByteArray dataToSend;
     quint8 stuffByte;
@@ -132,97 +213,32 @@ QByteArray ProtocolManager::sendPacket(const SerialPacket &pack)
     statistic.txBytes += dataToSend.size();
     statistic.txPackets++;
     //emit sendCommStatistic(statistic);
-    return dataToSend;
-}
-
-/**
- * Private methods
- */
-
-/**
- * @brief ProtocolManager::transferTimeout
- *  Receive timeout happens
- */
-void ProtocolManager::transferTimeout()
-{
-    if(rxState != ReceiverState::FREE) {
-        rxState = ReceiverState::ERROR;
-        statistic.timeoutErrors++;
-        statistic.overallErrors++;
-        //emit sendCommStatistic(statistic);
-    }
-}
-
-/**
- * @brief ProtocolManager::onlineTimeout
- *  Lost connection timeout happens
- */
-void ProtocolManager::onlineTimeout()
-{
-    statistic.fConnected = false;
-    //emit sendCommStatistic(statistic);
-}
-
-/**
- * @brief ProtocolManager::dataHandler
- *  Byte-to-byte data handler
- */
-void ProtocolManager::dataHandler()
-{
-    while(!rxBuffer.isEmpty()) {
-        quint8 c = rxBuffer[0];
-        switch (rxState) {
-        case ReceiverState::FREE:
-            //unexpected data
-            break;
-        case ReceiverState::WAIT_STATUS:
-            rxState = checkStatus(c);
-            break;
-        case ReceiverState::DATA_FLOW:
-            rxState = checkData(c);
-            break;
-        case ReceiverState::WAIT_CRC:
-            rxState = checkCrc(c);
-            break;
-        case ReceiverState::ERROR:
-            currRxPack.clear();
-            break;
-        default:
-            break;
-        }
-        rxBuffer.remove(0, 1);
-    }
-}
-
-ProtocolManager::ReceiverState ProtocolManager::checkStatus(quint8 byte)
-{
-    return ReceiverState::FREE;
 }
 
 ProtocolManager::ReceiverState ProtocolManager::checkData(quint8 byte)
 {
     ReceiverState state = ReceiverState::DATA_FLOW;
-    /*currRxPack.data.append(byte);
-    dataCounter++;
-    if(dataCounter == DATA_SIZE) {
-        //wait crc for extended packs
-        if(currRxPack.cmd == CONFIRM_PARAM) {
+    currRxPack.data.append(byte);
+    if(currTxPack.cmd == WRITE_PARAM) {
+        currRxPack.cmd = WRITE_PARAM;
+        currRxPack.addr = currTxPack.addr;
+        state = ReceiverState::WAIT_CRC;
+    }
+    else if(currTxPack.cmd == READ_PARAM) {
+        if(currRxPack.data.size() == (currTxPack.num + 1)) {
+            currRxPack.cmd = READ_PARAM;
+            currRxPack.addr = currTxPack.addr;
             state = ReceiverState::WAIT_CRC;
         }
-        //standard pack without crc - it's done
-        else {
-            emit packRecieved(currRxPack);
-            state = ReceiverState::WAIT_START_FRAME;
-            onValidPackReceive();
-        }
-    }*/
+    }
     return state;
 }
 
 ProtocolManager::ReceiverState ProtocolManager::checkCrc(quint8 byte)
 {
-    ReceiverState res = ReceiverState::ERROR;
+    ReceiverState res = ReceiverState::FRAME_ERROR;
     if(computeCRC(currRxPack) == byte) {
+        currRxPack.timestamp = QDateTime::currentMSecsSinceEpoch();
         emit packRecieved(currRxPack);
         res = ReceiverState::FREE;
         onValidPackReceive();

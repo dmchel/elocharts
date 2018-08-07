@@ -28,6 +28,7 @@ public:
     quint32 addr;
     quint8 num = 0;
     QByteArray data;
+    qint64 timestamp = 0;
 };
 
 /**
@@ -45,10 +46,9 @@ public:
 
     enum class ReceiverState {
         FREE,
-        WAIT_STATUS,
         DATA_FLOW,
         WAIT_CRC,
-        ERROR
+        FRAME_ERROR
     };
 
     struct CommunicationStatistic {
@@ -83,13 +83,15 @@ public slots:
     //!from serial port
     void receiveData(const QByteArray &data);
     //!to serial port
-    QByteArray sendPacket(const SerialPacket &pack);
+    void sendPacket(const SerialPacket &pack);
 
 private:
     void transferTimeout();
     void onlineTimeout();
     void dataHandler();
-    ReceiverState checkStatus(quint8 byte);
+    void processQueue();
+    void packTransmitter(const SerialPacket &pack);
+
     ReceiverState checkData(quint8 byte);
     ReceiverState checkCrc(quint8 byte);
 
@@ -109,11 +111,11 @@ private:
     ReceiverState rxState;
     QQueue<SerialPacket> txQueue;
 
+    SerialPacket currTxPack;
     SerialPacket currRxPack;
     CommunicationStatistic statistic;
 
     int checkConnectPeriod;
-    int dataCounter = 0;
 
     enum {
         STX = 0x02,

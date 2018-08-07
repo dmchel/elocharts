@@ -8,7 +8,7 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.7.0.0 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.8.0.0 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {
@@ -45,6 +45,8 @@ int main(int argc, char *argv[])
     w.setTableModel(server.dataModel());
     w.setTableDelegate(server.dataDelegate());
     w.show();
+
+    server.openSerialPort("COM2");
 
     return app.exec();
 }

@@ -27,6 +27,7 @@ public:
 signals:
     void generatePacket(const SerialPacket &pack);
     void dataArrived(RawData value);
+    void writeErrorOccured();
 
 public slots:
     void resetTimestamp();
@@ -38,11 +39,13 @@ private slots:
     void onTestTimerTimeout();
 
 private:
-    void saveParam(int id, qint32 val);
+    void saveParam(int id, qint64 t, qint32 val);
 
 private:
     qint64 timestamp = 0;                               //начальная отметка времени (для расчета x-координаты точки)
     QTimer *testTimer = Q_NULLPTR;
+
+    const int BASE_MEMORY_ADDR = 0x20000000;
 
 };
 
