@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     w.setTableDelegate(server.dataDelegate());
     w.show();
 
-    server.openSerialPort("COM2");
+    server.openSerialPort();
 
     return app.exec();
 }

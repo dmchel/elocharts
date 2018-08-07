@@ -60,6 +60,8 @@ public:
         quint32 crcErrors;
         quint32 timeoutErrors;
         quint32 formatErrors;
+        quint32 txSpeed;
+        quint32 rxSpeed;
         bool fConnected;
     };
 
@@ -88,6 +90,7 @@ public slots:
 private:
     void transferTimeout();
     void onlineTimeout();
+    void updateRates();
     void dataHandler();
     void processQueue();
     void packTransmitter(const SerialPacket &pack);
@@ -107,6 +110,7 @@ private:
 
 private:
     QTimer *stateTimer, *onlineTimer;
+    QTimer *rateTimer = Q_NULLPTR;
     QByteArray rxBuffer;
     ReceiverState rxState;
     QQueue<SerialPacket> txQueue;
@@ -114,6 +118,7 @@ private:
     SerialPacket currTxPack;
     SerialPacket currRxPack;
     CommunicationStatistic statistic;
+    CommunicationStatistic prevStatistic;
 
     int checkConnectPeriod;
 
@@ -158,6 +163,8 @@ private:
         0x82, 0xB3, 0xE0, 0xD1, 0x46, 0x77, 0x24, 0x15,
         0x3B, 0x0A, 0x59, 0x68, 0xFF, 0xCE, 0x9D, 0xAC
     };
+
+    const int MAX_TX_QUEUE_SIZE = 100;
 
 };
 

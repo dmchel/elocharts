@@ -33,6 +33,7 @@ ProtocolManager::ProtocolManager(QObject *parent) : QObject(parent)
     qRegisterMetaType<CommunicationStatistic>("CommunicationStatistic");
     checkConnectPeriod = 5000;
     memset(&statistic, 0, sizeof(statistic));
+    memset(&prevStatistic, 0, sizeof(prevStatistic));
 
     stateTimer = new QTimer(this);
     stateTimer->setTimerType(Qt::PreciseTimer);
@@ -40,9 +41,14 @@ ProtocolManager::ProtocolManager(QObject *parent) : QObject(parent)
     connect(stateTimer, &QTimer::timeout, this, &ProtocolManager::transferTimeout);
 
     onlineTimer = new QTimer(this);
-    onlineTimer->setTimerType(Qt::PreciseTimer);
+    //onlineTimer->setTimerType(Qt::PreciseTimer);
     onlineTimer->setSingleShot(true);
     connect(onlineTimer, &QTimer::timeout, this, &ProtocolManager::onlineTimeout);
+
+    rateTimer = new QTimer(this);
+    rateTimer->setTimerType(Qt::PreciseTimer);
+    rateTimer->start(1000);
+    connect(rateTimer, &QTimer::timeout, this, &ProtocolManager::updateRates);
 }
 
 ProtocolManager::CommunicationStatistic ProtocolManager::commStatus() const
@@ -96,6 +102,9 @@ void ProtocolManager::receiveData(const QByteArray &data)
  */
 void ProtocolManager::sendPacket(const SerialPacket &pack)
 {
+    if(txQueue.size() == MAX_TX_QUEUE_SIZE) {
+        txQueue.dequeue();
+    }
     txQueue.enqueue(pack);
     processQueue();
 }
@@ -126,6 +135,23 @@ void ProtocolManager::onlineTimeout()
 {
     statistic.fConnected = false;
     //emit sendCommStatistic(statistic);
+}
+
+/**
+ * @brief updateRates
+ *  Calculate connection speed
+ */
+void ProtocolManager::updateRates()
+{
+    if(statistic.fConnected) {
+        statistic.txSpeed = statistic.txBytes - prevStatistic.txBytes;
+        statistic.rxSpeed = statistic.rxBytes - prevStatistic.rxBytes;
+    }
+    else {
+        statistic.txSpeed = 0;
+        statistic.rxSpeed = 0;
+    }
+    prevStatistic = statistic;
 }
 
 /**
@@ -212,6 +238,7 @@ void ProtocolManager::packTransmitter(const SerialPacket &pack)
     emit transmitData(dataToSend);
     statistic.txBytes += dataToSend.size();
     statistic.txPackets++;
+    stateTimer->start(1000);
     //emit sendCommStatistic(statistic);
 }
 

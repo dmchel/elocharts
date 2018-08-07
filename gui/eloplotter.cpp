@@ -64,6 +64,7 @@ void ELOPlotter::initPlotter()
     this->yAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
     //this->yAxis->grid()->setSubGridPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
     this->xAxis->setRange(0.0, 10000.0);
+    this->yAxis->setRange(-100.0, 2000.0);
     this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables
                           | QCP::iSelectItems | QCP::iSelectAxes);
 }

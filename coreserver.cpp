@@ -21,7 +21,7 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
 
     checkConnectionTimer = new QTimer(this);
     connect(checkConnectionTimer, &QTimer::timeout, this, &CoreServer::checkConnection);
-    checkConnectionTimer->start(100);
+    checkConnectionTimer->start(250);
 
     readSettings();
 
@@ -67,10 +67,9 @@ void CoreServer::openSerialPort(const QString &name)
     if(protocol != Q_NULLPTR) {
         return;
     }
-    protocol = new ProtocolManager();
-    serialDevice = new SerialHandler(name);
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
     if(ports.isEmpty()) {
+        emit sendConsoleText("Serial ports not found!\r\n");
         qDebug() << "Serial ports not found!";
         return;
     }
@@ -78,16 +77,29 @@ void CoreServer::openSerialPort(const QString &name)
     settings.baudRate = QSerialPort::Baud9600;
     settings.dataBits = QSerialPort::Data8;
     settings.flowControl = QSerialPort::NoFlowControl;
+    settings.parity = QSerialPort::NoParity;
+    settings.stopBits = QSerialPort::OneStop;
+    settings.name = "";
 
     if(name.isEmpty()) {
-        settings.name = ports.at(0).portName();
+        for(auto port : ports) {
+            if(port.description().contains("Silicon Labs CP210x USB to UART Bridge")) {
+                settings.name = port.portName();
+            }
+        }
+        if(settings.name.isEmpty()) {
+            emit sendConsoleText("Device not found!\r\n");
+            qDebug() << "Device not found!";
+            return;
+        }
     }
     else {
         settings.name = name;
     }
 
-    settings.parity = QSerialPort::NoParity;
-    settings.stopBits = QSerialPort::OneStop;
+    protocol = new ProtocolManager();
+    protocol->setConnectionLostTimeout(2500);
+    serialDevice = new SerialHandler();
     serialDevice->setSettings(settings);
 
     QThread *serialThread = new QThread();
@@ -219,7 +231,7 @@ void CoreServer::onOpenSerialPort()
 {
     emit connected();
     emit sendConsoleText("Serial port opened " + serialDevice->portName() + ".\r\n");
-    qDebug() << "Serial port opened " + serialDevice->portName() + ".\r\n";
+    qDebug() << "Serial port opened " + serialDevice->portName();
 }
 
 void CoreServer::onCloseSerialPort()
@@ -292,8 +304,13 @@ void CoreServer::checkConnection()
     if(protocol != Q_NULLPTR) {
         ProtocolManager::CommunicationStatistic statistic = protocol->commStatus();
         emit sendConnectionStatus(statistic.fConnected);
-        QString infoStr = "Rx: " + QString::number(statistic.rxBytes) + "Tx: " + QString::number(statistic.txBytes) + " bytes";
+        QString infoStr = "Rx: " + QString::number(statistic.rxSpeed) + " Tx: " + QString::number(statistic.txSpeed) + " bytes/s";
         emit connectionInfoChanged(infoStr);
+    }
+    //try to open port
+    else {
+        emit sendConnectionStatus(false);
+        openSerialPort();
     }
 }
 

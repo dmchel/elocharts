@@ -72,16 +72,16 @@ void MainWindow::setTableDelegate(QAbstractItemDelegate *delegate)
 void MainWindow::updateConnectionStatus(bool flag)
 {
     if(flag) {
-        connectionStatusLabel->setText(tr("Соединение установлено"));
+        connectionStatusLabel->setText(tr("Соединение установлено   "));
     }
     else {
-        connectionStatusLabel->setText(tr("Нет связи с устройством"));
+        connectionStatusLabel->setText(tr("Нет связи с устройством   "));
     }
 }
 
 void MainWindow::updateConnectionInfo(const QString &str)
 {
-    connectionInfoLabel->setText(str);
+    connectionInfoLabel->setText(str + QString("     "));
 }
 
 void MainWindow::showStatusMessage(const QString &str)
