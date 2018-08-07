@@ -12,11 +12,18 @@ public:
 
 public slots:
     void addDataToPlot(int id, qreal x, qreal y);
-    void clearPlot();
     void setPlotColor(int id, const QColor &color);
+    void clearPlot();
+    void fitInPlots();
+    void pause();
+    void run();
 
 signals:
     void plotColorChanged(int id, const QColor &color);
+
+private slots:
+    void onMousePressed(QMouseEvent *event);
+    void onSelectionChanged();
 
 private:
     void initPlotter();
@@ -29,7 +36,8 @@ private:
 private:
     QMap<int, QCPGraph *> graphMap;
     QList<QColor> plotColors;
-
+    bool fVerticalAutoScroll = true;
+    qreal maxRangeY = 0.0;
 };
 
 #endif // ELOPLOTTER_H

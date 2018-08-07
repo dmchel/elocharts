@@ -8,7 +8,7 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.8.0.0 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.8.0.1 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {
@@ -17,13 +17,14 @@ int main(int argc, char *argv[])
 
     Shell shell;
     MainWindow w;
-    ELOPlotter plot;
+    ELOPlotter mainPlot;
+    ELOPlotter additionalPlot;
 
     CoreServer server;
     server.setSoftVersion(progVersion);
     //server connections
-    QObject::connect(&plot, &ELOPlotter::plotColorChanged, &server, &CoreServer::onChartColorChange);
-    QObject::connect(&server, &CoreServer::chartData, &plot, &ELOPlotter::addDataToPlot);
+    QObject::connect(&mainPlot, &ELOPlotter::plotColorChanged, &server, &CoreServer::onChartColorChange);
+    QObject::connect(&server, &CoreServer::chartData, &mainPlot, &ELOPlotter::addDataToPlot);
     QObject::connect(&server, &CoreServer::sendConnectionStatus, &w, &MainWindow::updateConnectionStatus);
     QObject::connect(&server, &CoreServer::connectionInfoChanged, &w, &MainWindow::updateConnectionInfo);
     QObject::connect(&server, &CoreServer::sendUartRxData, &w, &MainWindow::consolePutData);
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
     QObject::connect(&shell, &Shell::ePortList, &server, &CoreServer::shellPrintPorts);
     QObject::connect(&shell, &Shell::eVersionRequest, &server, &CoreServer::shellVersionRequest);
 
-    w.setChartWidget(&plot);
+    w.setChartWidget(&mainPlot);
     w.setTableModel(server.dataModel());
     w.setTableDelegate(server.dataDelegate());
     w.show();

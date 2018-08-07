@@ -24,17 +24,6 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     checkConnectionTimer->start(250);
 
     readSettings();
-
-    //ParamDataItem param_1(1, "PARAM_TEST_1", 100);
-    //ParamDataItem param_2(2, "PARAM_TEST_2", 100);
-    //ParamDataItem param_3(3, "PARAM_TEST_3", 100);
-    //chartModel->addRecord(param_1);
-    //chartModel->addRecord(param_2);
-    //chartModel->addRecord(param_3);
-
-    //writeParamToSettings(param_1);
-    //writeParamToSettings(param_2);
-    //writeParamToSettings(param_3);
 }
 
 CoreServer::~CoreServer()
@@ -304,7 +293,8 @@ void CoreServer::checkConnection()
     if(protocol != Q_NULLPTR) {
         ProtocolManager::CommunicationStatistic statistic = protocol->commStatus();
         emit sendConnectionStatus(statistic.fConnected);
-        QString infoStr = "Rx: " + QString::number(statistic.rxSpeed) + " Tx: " + QString::number(statistic.txSpeed) + " bytes/s";
+        QString infoStr = "Rx: " + QString::number(statistic.rxSpeed) +
+                          " Tx: " + QString::number(statistic.txSpeed) + " bytes/s";
         emit connectionInfoChanged(infoStr);
     }
     //try to open port

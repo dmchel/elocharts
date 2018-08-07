@@ -5,6 +5,9 @@ ELOPlotter::ELOPlotter(QWidget *parent)
     this->setParent(parent);
     initPlotter();
     initColorList();
+
+    connect(this, &ELOPlotter::mousePress, this, &ELOPlotter::onMousePressed);
+    connect(this, &ELOPlotter::selectionChangedByUser, this, &ELOPlotter::onSelectionChanged);
 }
 
 void ELOPlotter::addDataToPlot(int id, qreal x, qreal y)
@@ -21,12 +24,32 @@ void ELOPlotter::addDataToPlot(int id, qreal x, qreal y)
         emit plotColorChanged(id, plc);
     }
     updateRanges(x, y);
-    this->replot();
+    this->replot(QCustomPlot::rpQueuedReplot);
 }
 
 void ELOPlotter::clearPlot()
 {
     this->clearGraphs();
+    fVerticalAutoScroll = true;
+    maxRangeY = 0.0;
+    this->replot();
+}
+
+void ELOPlotter::fitInPlots()
+{
+    fVerticalAutoScroll = true;
+    updateRanges(0, maxRangeY);
+    this->replot();
+}
+
+void ELOPlotter::pause()
+{
+
+}
+
+void ELOPlotter::run()
+{
+    fVerticalAutoScroll = true;
 }
 
 /**
@@ -46,6 +69,32 @@ void ELOPlotter::setPlotColor(int id, const QColor &color)
  * Private methods
  */
 
+void ELOPlotter::onMousePressed(QMouseEvent *event)
+{
+    if(event->button() == Qt::LeftButton) {
+        fVerticalAutoScroll = false;
+    }
+}
+
+void ELOPlotter::onSelectionChanged()
+{
+    int zoomOrientation = 0;
+    for(auto axis : this->selectedAxes()) {
+        if(axis->axisType() == QCPAxis::atLeft) {
+            zoomOrientation |= Qt::Vertical;
+        }
+        else if(axis->axisType() == QCPAxis::atBottom) {
+            zoomOrientation |= Qt::Horizontal;
+        }
+    }
+    if(zoomOrientation != 0) {
+        this->axisRect()->setRangeZoom((Qt::Orientation)zoomOrientation);
+    }
+    else {
+        this->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+    }
+}
+
 void ELOPlotter::initPlotter()
 {
     this->setBackground(QBrush(QColor(0, 0, 0)));
@@ -63,7 +112,9 @@ void ELOPlotter::initPlotter()
     this->yAxis->setLabelColor(Qt::white);
     this->yAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
     //this->yAxis->grid()->setSubGridPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
+    //default range X = 10 sec
     this->xAxis->setRange(0.0, 10000.0);
+    //default range Y
     this->yAxis->setRange(-100.0, 2000.0);
     this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables
                           | QCP::iSelectItems | QCP::iSelectAxes);
@@ -103,14 +154,17 @@ const QColor &ELOPlotter::nextDefaultColor() const
 
 void ELOPlotter::updateRanges(qreal x, qreal y)
 {
-    if(y > this->yAxis->range().upper) {
-        this->yAxis->setRangeUpper(1.1 * y);
-    }
-    else if(y < this->yAxis->range().lower) {
-        this->yAxis->setRangeLower(1.1 * y);
+    if(fVerticalAutoScroll) {
+        if(y > this->yAxis->range().upper) {
+            maxRangeY = y;
+            this->yAxis->setRangeUpper(1.1 * y);
+        }
+        else if(y < this->yAxis->range().lower) {
+            this->yAxis->setRangeLower(1.1 * y);
+        }
     }
     //times goes only forward
     if(x > this->xAxis->range().upper) {
-        this->xAxis->moveRange(this->xAxis->range().size());
+        this->xAxis->moveRange(this->xAxis->range().size() / 2);
     }
 }
