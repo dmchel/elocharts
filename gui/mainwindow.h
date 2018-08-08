@@ -29,6 +29,11 @@ public:
 signals:
     void sendShellCommand(const QString &cmd);
     void sendParamData(const QJsonObject &data);
+    //plot control signals
+    void runPlot();
+    void pausePlot();
+    void fitInPlots();
+    void resetPlot();
 
 public slots:
     void updateConnectionStatus(bool flag);

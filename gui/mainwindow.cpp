@@ -27,6 +27,15 @@ MainWindow::MainWindow(QWidget *parent) :
     console->hide();
     connect(console, &Console::closed, this, &MainWindow::onCloseConsole);
     connect(console, &Console::eSendCommand, this, &MainWindow::sendShellCommand);
+
+    connect(ui->runAction, &QAction::triggered, this, &MainWindow::runPlot);
+    connect(ui->stopAction, &QAction::triggered, this, &MainWindow::pausePlot);
+    connect(ui->resetAction, &QAction::triggered, this, &MainWindow::resetPlot);
+    connect(ui->fitInAction, &QAction::triggered, this, &MainWindow::fitInPlots);
+    connect(ui->runButton, &QPushButton::clicked, this, &MainWindow::runPlot);
+    connect(ui->pauseButton, &QPushButton::clicked, this, &MainWindow::pausePlot);
+    connect(ui->resetButton, &QPushButton::clicked, this, &MainWindow::resetPlot);
+    connect(ui->fitInButton, &QPushButton::clicked, this, &MainWindow::fitInPlots);
 }
 
 MainWindow::~MainWindow()

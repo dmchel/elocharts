@@ -33,7 +33,7 @@ public slots:
     void resetTimestamp();
     void packetHandler(const SerialPacket &pack);
     void setParamOnDevice(int id, quint32 val);
-    void requesetParamFromDevice(int id);
+    void requesetParamsFromDevice(int start_id, int end_id = 0);
 
 private slots:
     void onTestTimerTimeout();

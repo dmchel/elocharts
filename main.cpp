@@ -8,7 +8,7 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.8.0.2 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.8.0.3 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {
@@ -18,11 +18,16 @@ int main(int argc, char *argv[])
     Shell shell;
     MainWindow w;
     ELOPlotter mainPlot;
-    mainPlot.start(40);
+    mainPlot.start(40);         //25 FPS
     //ELOPlotter additionalPlot;
 
     CoreServer server;
     server.setSoftVersion(progVersion);
+    //gui connections
+    QObject::connect(&w, &MainWindow::runPlot, &mainPlot, &ELOPlotter::run);
+    QObject::connect(&w, &MainWindow::pausePlot, &mainPlot, &ELOPlotter::pause);
+    QObject::connect(&w, &MainWindow::resetPlot, &mainPlot, &ELOPlotter::clearPlot);
+    QObject::connect(&w, &MainWindow::fitInPlots, &mainPlot, &ELOPlotter::fitInPlots);
     //server connections
     QObject::connect(&mainPlot, &ELOPlotter::plotColorChanged, &server, &CoreServer::onChartColorChange);
     QObject::connect(&server, &CoreServer::chartData, &mainPlot, &ELOPlotter::addDataToPlot);
@@ -32,6 +37,7 @@ int main(int argc, char *argv[])
     QObject::connect(&server, &CoreServer::sendUartRxData, &shell, &Shell::receiveData);
     QObject::connect(&server, &CoreServer::sendConsoleText, &w, &MainWindow::consolePrintText);
     QObject::connect(&w, &MainWindow::sendParamData, &server, &CoreServer::addParamData);
+    QObject::connect(&w, &MainWindow::resetPlot, &server, &CoreServer::resetTimestamp);
     //shell connections
     QObject::connect(&w, &MainWindow::sendShellCommand, &shell, &Shell::hNewCommand);
     QObject::connect(&shell, &Shell::ePrintString, &w, &MainWindow::consolePrintText);

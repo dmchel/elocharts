@@ -141,6 +141,11 @@ void CoreServer::onChartColorChange(int id, const QColor &color)
     chartModel->updateRecordColor(id, color);
 }
 
+void CoreServer::resetTimestamp()
+{
+    dataVault->resetTimestamp();
+}
+
 void CoreServer::shellListenUart()
 {
     if(serialDevice != Q_NULLPTR) {

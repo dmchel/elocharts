@@ -33,6 +33,7 @@ private slots:
 private:
     void initPlotter();
     void initColorList();
+    void setDefaultRanges();
 
     const QColor &nextDefaultColor() const;
 
@@ -48,6 +49,7 @@ private:
     QList<QColor> plotColors;
     bool fVerticalAutoScroll = true;
     qreal maxRangeY = 0.0;
+    qreal minRangeY = 0.0;
     bool fRunning = true;
 };
 

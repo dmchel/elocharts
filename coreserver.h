@@ -49,6 +49,7 @@ public slots:
     //gui data slots
     void addParamData(const QJsonObject &data);
     void onChartColorChange(int id, const QColor &color);
+    void resetTimestamp();
     //shell handlers
     void shellListenUart();
     void shellUartStatus();

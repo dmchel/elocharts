@@ -58,16 +58,21 @@ void ELOPlotter::addDataToPlot(int id, qreal x, qreal y)
 
 void ELOPlotter::clearPlot()
 {
+    graphMap.clear();
     this->clearGraphs();
+    timeLine = this->addGraph();
+    timeLine->setPen(QColor(Qt::white));
     fVerticalAutoScroll = true;
     maxRangeY = 0.0;
+    minRangeY = 0.0;
+    setDefaultRanges();
     this->replot();
 }
 
 void ELOPlotter::fitInPlots()
 {
     fVerticalAutoScroll = true;
-    updateRanges(0, maxRangeY);
+    this->yAxis->setRange(1.1 * minRangeY, 1.1 * maxRangeY);
     this->replot();
 }
 
@@ -147,16 +152,22 @@ void ELOPlotter::initPlotter()
     this->yAxis->setLabelColor(Qt::white);
     this->yAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
     //this->yAxis->grid()->setSubGridPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
-    //default range X = 10 sec
-    this->xAxis->setRange(0.0, 10000.0);
-    //default range Y
-    this->yAxis->setRange(-100.0, 2000.0);
+    setDefaultRanges();
+
     timeLine = this->addGraph();
     timeLine->setPen(QColor(Qt::white));
     tlKeys.append(0.0);
     tlKeys.append(0.0);
     tlData.append(yAxis->range().upper);
     tlData.append(yAxis->range().lower);
+
+    this->setNotAntialiasedElements(QCP::aeAll);
+    QFont font;
+    font.setStyleStrategy(QFont::NoAntialias);
+    this->xAxis->setTickLabelFont(font);
+    this->yAxis->setTickLabelFont(font);
+    this->legend->setFont(font);
+
     this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
 }
 
@@ -178,6 +189,14 @@ void ELOPlotter::initColorList()
     plotColors.append(Qt::darkYellow);
 }
 
+void ELOPlotter::setDefaultRanges()
+{
+    //default range X = 10 sec
+    this->xAxis->setRange(0.0, 10000.0);
+    //default range Y
+    this->yAxis->setRange(-100.0, 2000.0);
+}
+
 const QColor &ELOPlotter::nextDefaultColor() const
 {
     int index = graphMap.size();
@@ -196,12 +215,17 @@ void ELOPlotter::updateRanges(qreal x, qreal y)
 {
     if(fVerticalAutoScroll) {
         if(y > this->yAxis->range().upper) {
-            maxRangeY = y;
             this->yAxis->setRangeUpper(1.1 * y);
         }
         else if(y < this->yAxis->range().lower) {
             this->yAxis->setRangeLower(1.1 * y);
         }
+    }
+    if(y > maxRangeY) {
+        maxRangeY = y;
+    }
+    else if(y < minRangeY) {
+        minRangeY = y;
     }
     //times goes only forward
     if(x > this->xAxis->range().upper) {

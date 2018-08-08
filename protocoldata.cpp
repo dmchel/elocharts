@@ -12,7 +12,7 @@ ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
     testTimer = new QTimer(this);
     testTimer->setTimerType(Qt::PreciseTimer);
     connect(testTimer, &QTimer::timeout, this, &ProtocolData::onTestTimerTimeout);
-    testTimer->start(0);
+    testTimer->start(10);
     qsrand(42);
     timestamp = QDateTime::currentMSecsSinceEpoch();
 }
@@ -45,7 +45,7 @@ void ProtocolData::packetHandler(const SerialPacket &pack)
             val = 0;
             for(int i = 0; i < pack.data.size(); i++) {
                 quint8 byte = pack.data.at(i);
-                val |= byte << (i * 8);
+                val |= byte << ((i % 4) * 8);
                 if((i + 1) % 4 == 0) {
                     saveParam(id, pack.timestamp, val);
                     val = 0;
@@ -67,32 +67,49 @@ void ProtocolData::packetHandler(const SerialPacket &pack)
  */
 void ProtocolData::setParamOnDevice(int id, quint32 val)
 {
-    SerialPacket pack;
-    pack.type = SerialPacket::HOST;
-    pack.cmd = ProtocolManager::WRITE_PARAM;
-    pack.num = 3;
-    pack.addr = BASE_MEMORY_ADDR + id;
-    pack.data.append(val & 0xFF);
-    pack.data.append((val >> 8) & 0xFF);
-    pack.data.append((val >> 16) & 0xFF);
-    pack.data.append((val >> 24) & 0xFF);
-    emit generatePacket(pack);
+    if(id) {
+        SerialPacket pack;
+        pack.type = SerialPacket::HOST;
+        pack.cmd = ProtocolManager::WRITE_PARAM;
+        pack.num = 3;
+        pack.addr = BASE_MEMORY_ADDR + (id - 1) * 4;
+        pack.data.append(val & 0xFF);
+        pack.data.append((val >> 8) & 0xFF);
+        pack.data.append((val >> 16) & 0xFF);
+        pack.data.append((val >> 24) & 0xFF);
+        emit generatePacket(pack);
+    }
 }
 
 /**
  * @brief ProtocolData::requesetParamFromDevice
- *  Запросить значение параметра с устройства
- * @param id
+ *  Запросить значение параметров с устройства
+ * @param start_id начальный идентификатор
+ * @param end_id конечный идентификатор
  */
-void ProtocolData::requesetParamFromDevice(int id)
+void ProtocolData::requesetParamsFromDevice(int start_id, int end_id)
 {
-    SerialPacket pack;
-    pack.type = SerialPacket::HOST;
-    pack.cmd = ProtocolManager::READ_PARAM;
-    //pack.num = 3;
-    pack.num = 12 - 1;
-    pack.addr = 0x20000000 + (id - 1) * 4;
-    emit generatePacket(pack);
+    if(start_id != 0) {
+        SerialPacket pack;
+        pack.type = SerialPacket::HOST;
+        pack.cmd = ProtocolManager::READ_PARAM;
+        //нулевое значение идентификатора недопустимо
+        //если конечный id не задан, то запрашиваем только одни параметр
+        if(end_id == 0) {
+            //фиксированная длина параметра - 4 байта
+            //в пакете - номер страшего байта
+            pack.num = 4 - 1;
+        }
+        //запрашиваем несколько параметров подряд, но не более 32 байт
+        else if(end_id > start_id) {
+            pack.num = (end_id - start_id + 1) * 4 - 1;
+        }
+        else {
+            pack.num = 4 - 1;
+        }
+        pack.addr = BASE_MEMORY_ADDR + (start_id - 1) * 4;
+        emit generatePacket(pack);
+    }
 }
 
 /**
@@ -116,12 +133,12 @@ void ProtocolData::onTestTimerTimeout()
     }
     else if(qSin(t - timestamp) > 0) {
         x = 1;
-    }
-    saveParam(1, t, (qrand() % 1000));
-    saveParam(2, t, 250 * x);
-    saveParam(3, t, 125);*/
+    }*/
+    //saveParam(1, t, (qrand() % 1000));
+    //saveParam(2, t, 250 * x);
+    //saveParam(3, t, 125);
     static int param_id = 17;
-    requesetParamFromDevice(param_id);
+    requesetParamsFromDevice(param_id, param_id + 2);
     //param_id++;
     //if(param_id == 23) {
     //    param_id = 17;
