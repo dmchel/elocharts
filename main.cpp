@@ -8,7 +8,7 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.8.0.1 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.8.0.2 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {
@@ -18,7 +18,8 @@ int main(int argc, char *argv[])
     Shell shell;
     MainWindow w;
     ELOPlotter mainPlot;
-    ELOPlotter additionalPlot;
+    mainPlot.start(40);
+    //ELOPlotter additionalPlot;
 
     CoreServer server;
     server.setSoftVersion(progVersion);

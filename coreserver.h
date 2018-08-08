@@ -43,9 +43,6 @@ signals:
     void chartData(int id, qreal x, qreal y);
     void sendChartColor(int id, const QColor &color);
 
-    void chartDataAdditional(int id, qreal x, qreal y);
-    void sendChartColorAdditional(int id, const QColor &color);
-
 public slots:
     void openSerialPort(const QString &name = "");
     void closeSerialPort();

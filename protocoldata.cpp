@@ -12,7 +12,7 @@ ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
     testTimer = new QTimer(this);
     testTimer->setTimerType(Qt::PreciseTimer);
     connect(testTimer, &QTimer::timeout, this, &ProtocolData::onTestTimerTimeout);
-    testTimer->start(25);
+    testTimer->start(0);
     qsrand(42);
     timestamp = QDateTime::currentMSecsSinceEpoch();
 }
@@ -43,11 +43,15 @@ void ProtocolData::packetHandler(const SerialPacket &pack)
         id = (pack.addr - BASE_MEMORY_ADDR) / 4 + 1;
         if((id > 0) && (pack.data.size() >= 4)) {
             val = 0;
-            for(int i = 0; i < 4; i++) {
+            for(int i = 0; i < pack.data.size(); i++) {
                 quint8 byte = pack.data.at(i);
                 val |= byte << (i * 8);
+                if((i + 1) % 4 == 0) {
+                    saveParam(id, pack.timestamp, val);
+                    val = 0;
+                    id++;
+                }
             }
-            saveParam(id, pack.timestamp, val);
         }
         break;
     default:
@@ -85,7 +89,8 @@ void ProtocolData::requesetParamFromDevice(int id)
     SerialPacket pack;
     pack.type = SerialPacket::HOST;
     pack.cmd = ProtocolManager::READ_PARAM;
-    pack.num = 3;
+    //pack.num = 3;
+    pack.num = 12 - 1;
     pack.addr = 0x20000000 + (id - 1) * 4;
     emit generatePacket(pack);
 }
@@ -117,8 +122,8 @@ void ProtocolData::onTestTimerTimeout()
     saveParam(3, t, 125);*/
     static int param_id = 17;
     requesetParamFromDevice(param_id);
-    param_id++;
-    if(param_id == 20) {
-        param_id = 17;
-    }
+    //param_id++;
+    //if(param_id == 23) {
+    //    param_id = 17;
+    //}
 }

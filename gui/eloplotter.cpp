@@ -8,10 +8,35 @@ ELOPlotter::ELOPlotter(QWidget *parent)
 
     connect(this, &ELOPlotter::mousePress, this, &ELOPlotter::onMousePressed);
     connect(this, &ELOPlotter::selectionChangedByUser, this, &ELOPlotter::onSelectionChanged);
+
+    updateTimer = new QTimer(this);
+    updateTimer->setTimerType(Qt::PreciseTimer);
+    updateTimer->setInterval(replotIntervalMs);
+    connect(updateTimer, &QTimer::timeout, this, &ELOPlotter::onUpdateTimeout);
+}
+
+void ELOPlotter::setUpdatingPeriod(int msec)
+{
+    replotIntervalMs = msec;
+    updateTimer->start(replotIntervalMs);
+}
+
+int ELOPlotter::updatingInterval() const
+{
+    return replotIntervalMs;
+}
+
+void ELOPlotter::start(int msec)
+{
+    replotIntervalMs = msec;
+    updateTimer->start(msec);
 }
 
 void ELOPlotter::addDataToPlot(int id, qreal x, qreal y)
 {
+    if(!fRunning) {
+        return;
+    }
     if(graphMap.contains(id)) {
         graphMap.value(id)->addData(x, y);
     }
@@ -19,12 +44,16 @@ void ELOPlotter::addDataToPlot(int id, qreal x, qreal y)
         QCPGraph *newGraph = this->addGraph();
         graphMap.insert(id, newGraph);
         QColor plc = nextDefaultColor();
-        newGraph->setPen(plc);
+        QPen pen;
+        pen.setColor(plc);
+        pen.setWidth(1);
+        newGraph->setPen(pen);
         newGraph->addData(x, y);
         emit plotColorChanged(id, plc);
     }
     updateRanges(x, y);
-    this->replot(QCustomPlot::rpQueuedReplot);
+    //now replot control by timer
+    //this->replot(QCustomPlot::rpQueuedReplot);
 }
 
 void ELOPlotter::clearPlot()
@@ -44,12 +73,13 @@ void ELOPlotter::fitInPlots()
 
 void ELOPlotter::pause()
 {
-
+    fRunning = false;
 }
 
 void ELOPlotter::run()
 {
     fVerticalAutoScroll = true;
+    fRunning = true;
 }
 
 /**
@@ -68,6 +98,11 @@ void ELOPlotter::setPlotColor(int id, const QColor &color)
 /**
  * Private methods
  */
+
+void ELOPlotter::onUpdateTimeout()
+{
+    this->replot();
+}
 
 void ELOPlotter::onMousePressed(QMouseEvent *event)
 {
@@ -116,8 +151,13 @@ void ELOPlotter::initPlotter()
     this->xAxis->setRange(0.0, 10000.0);
     //default range Y
     this->yAxis->setRange(-100.0, 2000.0);
-    this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables
-                          | QCP::iSelectItems | QCP::iSelectAxes);
+    timeLine = this->addGraph();
+    timeLine->setPen(QColor(Qt::white));
+    tlKeys.append(0.0);
+    tlKeys.append(0.0);
+    tlData.append(yAxis->range().upper);
+    tlData.append(yAxis->range().lower);
+    this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
 }
 
 void ELOPlotter::initColorList()
@@ -167,4 +207,9 @@ void ELOPlotter::updateRanges(qreal x, qreal y)
     if(x > this->xAxis->range().upper) {
         this->xAxis->moveRange(this->xAxis->range().size() / 2);
     }
+    tlKeys[0] = x;
+    tlKeys[1] = x;
+    tlData[0] = this->yAxis->range().upper;
+    tlData[1] = this->yAxis->range().lower;
+    timeLine->setData(tlKeys, tlData);
 }
