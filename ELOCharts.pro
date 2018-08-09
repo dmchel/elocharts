@@ -17,7 +17,6 @@ SOURCES += \
     protocolmanager.cpp \
     dev/serialhandler.cpp \
     coreserver.cpp \
-    qml/qmlwrapper.cpp \
     protocoldata.cpp \
     gui/mainwindow.cpp \
     settingswizard.cpp \
@@ -33,7 +32,6 @@ HEADERS += \
     protocolmanager.h \
     coreserver.h \
     dev/serialhandler.h \
-    qml/qmlwrapper.h \
     protocoldata.h \
     gui/mainwindow.h \
     settingswizard.h \

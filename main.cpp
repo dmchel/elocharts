@@ -7,7 +7,7 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.8.0.3 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.8.0.4 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {

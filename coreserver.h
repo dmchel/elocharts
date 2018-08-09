@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QPointF>
+#include <QHash>
+#include <QAbstractProxyModel>
 
 #include "protocoldata.h"
 #include "recordModel/chartrecordmodel.h"
@@ -60,6 +62,7 @@ public slots:
 private slots:
     void onNewChartData(const RawData &value);
     void checkConnection();
+    void dataControl();
 
 private:
     void onOpenSerialPort();
@@ -75,11 +78,15 @@ private:
     ChartRecordModel *chartModel = Q_NULLPTR;
     CustomRecordDelegate *chartDelegate = Q_NULLPTR;
     SettingsWizard *settings = Q_NULLPTR;
+    QHash<int, int> paramTimeoutsHash;
 
     QTimer *checkConnectionTimer = Q_NULLPTR;
+    QTimer *requestTimer = Q_NULLPTR;
 
     bool fListenUart = false;
     QString progVersion = "?????";
+
+    const int REQUEST_DATA_PERIOD_MS = 10;
 };
 
 #endif // CORESERVER_H

@@ -23,12 +23,16 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     connect(checkConnectionTimer, &QTimer::timeout, this, &CoreServer::checkConnection);
     checkConnectionTimer->start(250);
 
+    requestTimer = new QTimer(this);
+    requestTimer->setTimerType(Qt::PreciseTimer);
+    connect(requestTimer, &QTimer::timeout, this, &CoreServer::dataControl);
+
     readSettings();
 }
 
 CoreServer::~CoreServer()
 {
-
+    emit stopSerial();
 }
 
 void CoreServer::setSoftVersion(const QString &str)
@@ -226,11 +230,13 @@ void CoreServer::onOpenSerialPort()
     emit connected();
     emit sendConsoleText("Serial port opened " + serialDevice->portName() + ".\r\n");
     qDebug() << "Serial port opened " + serialDevice->portName();
+    requestTimer->start(REQUEST_DATA_PERIOD_MS);
 }
 
 void CoreServer::onCloseSerialPort()
 {
     emit disconnected();
+    requestTimer->stop();
     protocol = Q_NULLPTR;
     serialDevice = Q_NULLPTR;
     qDebug() << "Serial port closed.";
@@ -307,5 +313,10 @@ void CoreServer::checkConnection()
         emit sendConnectionStatus(false);
         openSerialPort();
     }
+}
+
+void CoreServer::dataControl()
+{
+
 }
 

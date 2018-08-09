@@ -20,11 +20,12 @@ QWidget *CustomRecordDelegate::createEditor(QWidget *parent, const QStyleOptionV
     }
     //id
     if(index.column() == 0) {
-        QSpinBox *editor = new QSpinBox(parent);
+        return Q_NULLPTR;
+        /*QSpinBox *editor = new QSpinBox(parent);
         editor->setFrame(false);
         editor->setRange(1, 255);
         editor->setSingleStep(1);
-        return editor;
+        return editor;*/
     }
     //period
     else if(index.column() == 2) {
