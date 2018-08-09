@@ -3,7 +3,6 @@
 
 #include "qml/qmlwrapper.h"
 #include "gui/mainwindow.h"
-#include "gui/chartwidget.h"
 #include "gui/eloplotter.h"
 #include "coreserver.h"
 #include "shell.h"

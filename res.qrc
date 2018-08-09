@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>img/fitIn.png</file>
+        <file>img/pause.png</file>
+        <file>img/play.png</file>
+        <file>img/reset.png</file>
+    </qresource>
+</RCC>

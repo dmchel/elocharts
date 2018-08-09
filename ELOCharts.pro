@@ -1,4 +1,4 @@
-QT += core widgets serialport charts printsupport
+QT += core widgets serialport printsupport
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -19,7 +19,6 @@ SOURCES += \
     coreserver.cpp \
     qml/qmlwrapper.cpp \
     protocoldata.cpp \
-    gui/chartwidget.cpp \
     gui/mainwindow.cpp \
     settingswizard.cpp \
     recordModel/chartrecordmodel.cpp \
@@ -36,7 +35,6 @@ HEADERS += \
     dev/serialhandler.h \
     qml/qmlwrapper.h \
     protocoldata.h \
-    gui/chartwidget.h \
     gui/mainwindow.h \
     settingswizard.h \
     recordModel/chartrecordmodel.h \
@@ -56,3 +54,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 FORMS += \
     gui/mainwindow.ui \
     gui/createparamdialog.ui
+
+RESOURCES += \
+    res.qrc
