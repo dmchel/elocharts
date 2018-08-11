@@ -16,6 +16,7 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     connect(dataVault, &ProtocolData::dataArrived, this, &CoreServer::onNewChartData);
 
     chartModel = new ChartRecordModel(this);
+    connect(chartModel, &ChartRecordModel::dataChanged, this, &CoreServer::onModelDataChange);
     chartDelegate = new CustomRecordDelegate(this);
     settings = new SettingsWizard(this);
 
@@ -26,8 +27,6 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     requestTimer = new QTimer(this);
     requestTimer->setTimerType(Qt::PreciseTimer);
     connect(requestTimer, &QTimer::timeout, this, &CoreServer::dataControl);
-
-    readSettings();
 }
 
 CoreServer::~CoreServer()
@@ -145,9 +144,35 @@ void CoreServer::onChartColorChange(int id, const QColor &color)
     chartModel->updateRecordColor(id, color);
 }
 
+void CoreServer::runUpdate()
+{
+    fRunUpdate = true;
+}
+
+void CoreServer::pauseUpdate()
+{
+    fRunUpdate = false;
+}
+
 void CoreServer::resetTimestamp()
 {
     dataVault->resetTimestamp();
+}
+
+void CoreServer::saveSettings()
+{
+    //save params
+    for(auto &record : chartModel->readAllData()) {
+        QJsonObject data;
+        data["id"] = record.id;
+        data["name"] = record.name;
+        data["factor"] = record.factor;
+        data["shift"] = record.shift;
+        data["period"] = record.period;
+        data["fShowGraph"] = record.fShowGraph;
+        data.insert("color", QJsonValue::fromVariant(QVariant(record.graphColor)));
+        writeParamToSettings(data);
+    }
 }
 
 void CoreServer::shellListenUart()
@@ -258,6 +283,7 @@ void CoreServer::readSettings()
                 paramData["fShowGraph"] = settings->readValue(group + "/fShowGraph", false).toBool();
                 paramData["color"] = QJsonValue::fromVariant(settings->readValue(group + "/color", QColor("blue")));
                 chartModel->addRecord(paramData);
+                emit sendChartColor(paramData["id"].toInt(), paramData["color"].toVariant().value<QColor>());
             }
         }
     }
@@ -295,8 +321,25 @@ void CoreServer::writeParamToSettings(const QJsonObject &obj)
 
 void CoreServer::onNewChartData(const RawData &value)
 {
-    chartModel->updateRecordValue(value.id, value.dot.y());
-    emit chartData(value.id, value.dot.x(), chartModel->recordById(value.id).value);
+    if(fRunUpdate) {
+        chartModel->updateRecordValue(value.id, value.dot.y());
+        emit chartData(value.id, value.dot.x(), chartModel->recordById(value.id).value);
+    }
+}
+
+void CoreServer::onModelDataChange(const QModelIndex &topLeft, const QModelIndex &bottomRight)
+{
+    Q_UNUSED(bottomRight)
+    if(!topLeft.isValid()) {
+        return;
+    }
+    //color column
+    if(topLeft.column() == 9) {
+        QColor graphColor = topLeft.data().value<QColor>();
+        QModelIndex idIndex = chartModel->index(topLeft.row(), 0);
+        int id = idIndex.data().toInt();
+        emit sendChartColor(id, graphColor);
+    }
 }
 
 void CoreServer::checkConnection()

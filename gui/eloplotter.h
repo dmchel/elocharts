@@ -43,6 +43,7 @@ private:
     QTimer *updateTimer = Q_NULLPTR;
     int replotIntervalMs = 50;
     QMap<int, QCPGraph *> graphMap;
+    QMap<int, QColor> colorMap;
     QCPGraph *timeLine = Q_NULLPTR;
     QVector<qreal> tlKeys;
     QVector<qreal> tlData;

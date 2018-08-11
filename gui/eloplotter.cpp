@@ -44,6 +44,9 @@ void ELOPlotter::addDataToPlot(int id, qreal x, qreal y)
         QCPGraph *newGraph = this->addGraph();
         graphMap.insert(id, newGraph);
         QColor plc = nextDefaultColor();
+        if(colorMap.contains(id)) {
+            plc = colorMap.value(id);
+        }
         QPen pen;
         pen.setColor(plc);
         pen.setWidth(1);
@@ -95,6 +98,7 @@ void ELOPlotter::run()
  */
 void ELOPlotter::setPlotColor(int id, const QColor &color)
 {
+    colorMap.insert(id, color);
     if(graphMap.contains(id)) {
         graphMap.value(id)->setPen(color);
     }

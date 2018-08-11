@@ -21,12 +21,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connectionInfoLabel = new QLabel(this);
     this->statusBar()->addPermanentWidget(connectionStatusLabel);
     this->statusBar()->addPermanentWidget(connectionInfoLabel);
+    //ui->addParamAction->setDisabled(true);
     connect(ui->addParamAction, &QAction::triggered, this, &MainWindow::addNewParam);
     console = new Console(this);
     console->setLocalEchoEnabled(true);
     console->hide();
     connect(console, &Console::closed, this, &MainWindow::onCloseConsole);
     connect(console, &Console::eSendCommand, this, &MainWindow::sendShellCommand);
+
+    ui->buttonDockWidget->setTitleBarWidget(new QWidget());
 
     connect(ui->runAction, &QAction::triggered, this, &MainWindow::runPlot);
     connect(ui->stopAction, &QAction::triggered, this, &MainWindow::pausePlot);
@@ -58,6 +61,7 @@ void MainWindow::setTableModel(QAbstractItemModel *model)
 {
     if(model) {
         varTable->setModel(model);
+        varTable->hideColumn(0);
         ChartRecordModel *chartModel = static_cast<ChartRecordModel*>(model);
         connect(chartModel, &ChartRecordModel::recordChanged, varTable, QOverload<const QModelIndex&>::of(&QTableView::update));
         if(bottomDockWidget != Q_NULLPTR) {
@@ -121,6 +125,15 @@ void MainWindow::consoleClear()
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
+    case Qt::Key_Space:
+        if(fRun) {
+            emit pausePlot();
+        }
+        else {
+            emit runPlot();
+        }
+        fRun = !fRun;
+        break;
     case Qt::Key_F12:
         if(console->isVisible()) {
             console->hide();
@@ -134,6 +147,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     default:
         break;
     }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    emit aboutToClose();
+    event->accept();
 }
 
 /**

@@ -7,7 +7,7 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.8.0.4 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.8.0.5 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {
@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
     QObject::connect(&w, &MainWindow::resetPlot, &mainPlot, &ELOPlotter::clearPlot);
     QObject::connect(&w, &MainWindow::fitInPlots, &mainPlot, &ELOPlotter::fitInPlots);
     //server connections
-    QObject::connect(&mainPlot, &ELOPlotter::plotColorChanged, &server, &CoreServer::onChartColorChange);
+    //QObject::connect(&mainPlot, &ELOPlotter::plotColorChanged, &server, &CoreServer::onChartColorChange);
+    QObject::connect(&server, &CoreServer::sendChartColor, &mainPlot, &ELOPlotter::setPlotColor);
     QObject::connect(&server, &CoreServer::chartData, &mainPlot, &ELOPlotter::addDataToPlot);
     QObject::connect(&server, &CoreServer::sendConnectionStatus, &w, &MainWindow::updateConnectionStatus);
     QObject::connect(&server, &CoreServer::connectionInfoChanged, &w, &MainWindow::updateConnectionInfo);
@@ -36,7 +37,10 @@ int main(int argc, char *argv[])
     QObject::connect(&server, &CoreServer::sendUartRxData, &shell, &Shell::receiveData);
     QObject::connect(&server, &CoreServer::sendConsoleText, &w, &MainWindow::consolePrintText);
     QObject::connect(&w, &MainWindow::sendParamData, &server, &CoreServer::addParamData);
+    QObject::connect(&w, &MainWindow::runPlot, &server, &CoreServer::runUpdate);
+    QObject::connect(&w, &MainWindow::pausePlot, &server, &CoreServer::pauseUpdate);
     QObject::connect(&w, &MainWindow::resetPlot, &server, &CoreServer::resetTimestamp);
+    QObject::connect(&w, &MainWindow::aboutToClose, &server, &CoreServer::saveSettings);
     //shell connections
     QObject::connect(&w, &MainWindow::sendShellCommand, &shell, &Shell::hNewCommand);
     QObject::connect(&shell, &Shell::ePrintString, &w, &MainWindow::consolePrintText);
@@ -53,6 +57,7 @@ int main(int argc, char *argv[])
     w.setTableDelegate(server.dataDelegate());
     w.show();
 
+    server.readSettings();
     server.openSerialPort();
 
     return app.exec();

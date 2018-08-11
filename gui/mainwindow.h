@@ -26,7 +26,10 @@ public:
     void setTableModel(QAbstractItemModel *model);
     void setTableDelegate(QAbstractItemDelegate *delegate);
 
+    void closeEvent(QCloseEvent *event);
+
 signals:
+    void aboutToClose();
     void sendShellCommand(const QString &cmd);
     void sendParamData(const QJsonObject &data);
     //plot control signals
@@ -60,6 +63,8 @@ private:
     QLabel *connectionStatusLabel = Q_NULLPTR;
     QLabel *connectionInfoLabel = Q_NULLPTR;
     Console *console;
+
+    bool fRun = true;
 };
 
 #endif // MAINWINDOW_H

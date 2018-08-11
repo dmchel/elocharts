@@ -20,12 +20,11 @@ QWidget *CustomRecordDelegate::createEditor(QWidget *parent, const QStyleOptionV
     }
     //id
     if(index.column() == 0) {
-        return Q_NULLPTR;
-        /*QSpinBox *editor = new QSpinBox(parent);
+        QSpinBox *editor = new QSpinBox(parent);
         editor->setFrame(false);
         editor->setRange(1, 255);
         editor->setSingleStep(1);
-        return editor;*/
+        return editor;
     }
     //period
     else if(index.column() == 2) {
@@ -41,8 +40,8 @@ QWidget *CustomRecordDelegate::createEditor(QWidget *parent, const QStyleOptionV
         QDoubleSpinBox *editor = new QDoubleSpinBox(parent);
         editor->setFrame(false);
         editor->setRange(-10e12, 10e12);
-        editor->setDecimals(3);
-        editor->setSingleStep(0.001);
+        editor->setDecimals(6);
+        editor->setSingleStep(0.0001);
         return editor;
     }
     //flags

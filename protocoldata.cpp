@@ -126,19 +126,19 @@ void ProtocolData::saveParam(int id, qint64 t, qint32 val)
 
 void ProtocolData::onTestTimerTimeout()
 {
-    /*qint64 t = QDateTime::currentMSecsSinceEpoch();
+    qint64 t = QDateTime::currentMSecsSinceEpoch();
     int x = 0;
     if(qSin(t - timestamp) < 0) {
         x = -1;
     }
     else if(qSin(t - timestamp) > 0) {
         x = 1;
-    }*/
-    //saveParam(1, t, (qrand() % 1000));
+    }
+    saveParam(1, t, (qrand() % 1000));
     //saveParam(2, t, 250 * x);
     //saveParam(3, t, 125);
-    static int param_id = 17;
-    requesetParamsFromDevice(param_id, param_id + 2);
+    //static int param_id = 17;
+    //requesetParamsFromDevice(param_id, param_id + 2);
     //param_id++;
     //if(param_id == 23) {
     //    param_id = 17;

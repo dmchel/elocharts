@@ -76,9 +76,6 @@ void ChartRecordModel::updateRecordValue(int id, int value)
     if(pItem != Q_NULLPTR) {
         pItem->rawValue = value;
         pItem->value = value * pItem->factor + pItem->shift;
-        //setData(this->index(row, 6), value, Qt::EditRole);
-        //qreal finalValue = value * pItem->factor + pItem->shift;
-        //setData(this->index(row, 5), finalValue, Qt::EditRole);
         int row = getRecordRowById(id);
         emit recordChanged(this->index(row, 6));
         emit recordChanged(this->index(row, 5));
@@ -237,41 +234,45 @@ bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, 
         return false;
     }
     if(index.isValid() && value.isValid()) {
+        bool fOk = false;
         auto row = index.row();
         if(row < records.size()) {
             switch (index.column()) {
             case 0:
                 records[row].id = value.toInt();
-                return true;
+                fOk = true;
             case 1:
                 records[row].name = value.toString();
-                return true;
+                fOk = true;
             case 2:
                 records[row].period = value.toInt();
-                return true;
+                fOk = true;
             case 3:
                 records[row].factor = value.toDouble();
-                return true;
+                fOk = true;
             case 4:
                 records[row].shift = value.toDouble();
-                return true;
+                fOk = true;
             case 5:
                 records[row].value = value.toDouble();
-                return true;
+                fOk = true;
             case 6:
                 records[row].rawValue = value.toInt();
-                return true;
+                fOk = true;
             case 7:
                 records[row].fActive = value.toBool();
-                return true;
+                fOk = true;
             case 8:
                 records[row].fShowGraph = value.toBool();
-                return true;
+                fOk = true;
             case 9:
                 records[row].graphColor = value.value<QColor>();
-                return true;
+                fOk = true;
+            default:
+                break;
             }
             emit dataChanged(index, index);
+            return fOk;
         }
     }
     return false;

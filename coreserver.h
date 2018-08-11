@@ -30,6 +30,8 @@ public:
     ChartRecordModel *dataModel() const;
     CustomRecordDelegate *dataDelegate() const;
 
+    void readSettings();
+
 signals:
     void stopSerial();
     void connected();
@@ -51,7 +53,10 @@ public slots:
     //gui data slots
     void addParamData(const QJsonObject &data);
     void onChartColorChange(int id, const QColor &color);
+    void runUpdate();
+    void pauseUpdate();
     void resetTimestamp();
+    void saveSettings();
     //shell handlers
     void shellListenUart();
     void shellUartStatus();
@@ -61,13 +66,13 @@ public slots:
 
 private slots:
     void onNewChartData(const RawData &value);
+    void onModelDataChange(const QModelIndex &topLeft, const QModelIndex &bottomRight);
     void checkConnection();
     void dataControl();
 
 private:
     void onOpenSerialPort();
     void onCloseSerialPort();
-    void readSettings();
     void writeParamToSettings(const ParamDataItem &item);
     void writeParamToSettings(const QJsonObject &obj);
 
@@ -79,6 +84,7 @@ private:
     CustomRecordDelegate *chartDelegate = Q_NULLPTR;
     SettingsWizard *settings = Q_NULLPTR;
     QHash<int, int> paramTimeoutsHash;
+    bool fRunUpdate = true;
 
     QTimer *checkConnectionTimer = Q_NULLPTR;
     QTimer *requestTimer = Q_NULLPTR;
