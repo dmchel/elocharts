@@ -25,6 +25,7 @@ public:
     void setChartWidget(QWidget *widget);
     void setTableModel(QAbstractItemModel *model);
     void setTableDelegate(QAbstractItemDelegate *delegate);
+    void setApplicationVersion(const QString &str);
 
     void closeEvent(QCloseEvent *event);
 
@@ -42,6 +43,7 @@ public slots:
     void updateConnectionStatus(bool flag);
     void updateConnectionInfo(const QString &str);
     void showStatusMessage(const QString &str);
+    void updateTableGeometry();
     //console interface
     void consolePrintText(const QString &str);
     void consoleUnknownCmd(const QString &str);
@@ -54,6 +56,7 @@ protected:
 private slots:
     void onCloseConsole();
     void addNewParam();
+    void about();
 
 private:
     Ui::MainWindow *ui;
@@ -65,6 +68,7 @@ private:
     Console *console;
 
     bool fRun = true;
+    QString appVersion = "";
 };
 
 #endif // MAINWINDOW_H

@@ -16,7 +16,7 @@ ParamDataItem::ParamDataItem()
 
 ParamDataItem::ParamDataItem(int pId, const QString &pName, int pPeriod,
                              qreal pFactor, qreal pShift, qreal pValue,
-                             int pRawValue, bool isActive, bool fGraph,
+                             quint32 pRawValue, bool isActive, bool fGraph,
                              QColor color)
 {
     id = pId;
@@ -70,7 +70,7 @@ void ChartRecordModel::addRecord(const ParamDataItem &record) {
  *  Обновить значение записи если она существует (проверка по id)
  * @param record
  */
-void ChartRecordModel::updateRecordValue(int id, int value)
+void ChartRecordModel::updateRecordValue(int id, quint32 value)
 {
     ParamDataItem *pItem = getRecordRefById(id);
     if(pItem != Q_NULLPTR) {
@@ -167,25 +167,25 @@ QVariant ChartRecordModel::data(const QModelIndex &index, int role) const {
     if(role == Qt::DisplayRole) {
         const ParamDataItem &record = records.at(index.row());
         switch (index.column()) {
-        case 0:
+        case COL_ID:
             return record.id;
-        case 1:
+        case COL_NAME:
             return record.name;
-        case 2:
+        case COL_PERIOD:
             return record.period;
-        case 3:
+        case COL_FACTOR:
             return record.factor;
-        case 4:
+        case COL_SHIFT:
             return record.shift;
-        case 5:
+        case COL_VALUE:
             return record.value;
-        case 6:
+        case COL_RAW_VALUE:
             return record.rawValue;
-        case 7:
+        case COL_ACTIVE:
             return record.fActive;
-        case 8:
+        case COL_SHOW_GRAPH:
             return record.fShowGraph;
-        case 9:
+        case COL_COLOR:
             return record.graphColor;
         }
     }
@@ -201,25 +201,25 @@ QVariant ChartRecordModel::headerData(int section, Qt::Orientation orientation, 
     }
     if(orientation == Qt::Horizontal) {
         switch(section) {
-        case 0:
+        case COL_ID:
             return tr("id");
-        case 1:
+        case COL_NAME:
             return tr("Имя");
-        case 2:
+        case COL_PERIOD:
             return tr("Период");
-        case 3:
+        case COL_FACTOR:
             return tr("Коэффициент");
-        case 4:
+        case COL_SHIFT:
             return tr("Сдвиг");
-        case 5:
+        case COL_VALUE:
             return tr("Значение");
-        case 6:
+        case COL_RAW_VALUE:
             return tr("Сырое значение");
-        case 7:
+        case COL_ACTIVE:
             return tr("Активен");
-        case 8:
-            return tr("Показать график");
-        case 9:
+        case COL_SHOW_GRAPH:
+            return tr("Вывод на график");
+        case COL_COLOR:
             return tr("Цвет");
         default:
             return QVariant();
@@ -238,36 +238,47 @@ bool ChartRecordModel::setData(const QModelIndex &index, const QVariant &value, 
         auto row = index.row();
         if(row < records.size()) {
             switch (index.column()) {
-            case 0:
+            case COL_ID:
                 records[row].id = value.toInt();
                 fOk = true;
-            case 1:
+                break;
+            case COL_NAME:
                 records[row].name = value.toString();
                 fOk = true;
-            case 2:
+                break;
+            case COL_PERIOD:
                 records[row].period = value.toInt();
                 fOk = true;
-            case 3:
+                break;
+            case COL_FACTOR:
                 records[row].factor = value.toDouble();
                 fOk = true;
-            case 4:
+                break;
+            case COL_SHIFT:
                 records[row].shift = value.toDouble();
                 fOk = true;
-            case 5:
+                break;
+            case COL_VALUE:
                 records[row].value = value.toDouble();
+                records[row].rawValue = (value.toDouble() / records[row].factor) - records[row].shift;
                 fOk = true;
-            case 6:
-                records[row].rawValue = value.toInt();
+                break;
+            case COL_RAW_VALUE:
+                records[row].rawValue = value.toUInt();
                 fOk = true;
-            case 7:
+                break;
+            case COL_ACTIVE:
                 records[row].fActive = value.toBool();
                 fOk = true;
-            case 8:
+                break;
+            case COL_SHOW_GRAPH:
                 records[row].fShowGraph = value.toBool();
                 fOk = true;
-            case 9:
+                break;
+            case COL_COLOR:
                 records[row].graphColor = value.value<QColor>();
                 fOk = true;
+                break;
             default:
                 break;
             }
@@ -312,5 +323,27 @@ int ChartRecordModel::getRecordRowById(int id)
         row++;
     }
     return row;
+}
+
+
+ChartRecordProxyModel::ChartRecordProxyModel(QObject *parent) : QSortFilterProxyModel(parent)
+{
+
+}
+
+bool ChartRecordProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
+{
+    QVariant leftData = sourceModel()->data(source_left);
+    QVariant rightData = sourceModel()->data(source_right);
+    if((source_left.column() == ChartRecordModel::COL_ID)) {
+        auto left = leftData.toInt();
+        auto right = rightData.toInt();
+        return (left < right);
+    }
+    else {
+        QString leftString = leftData.toString();
+        QString rightString = rightData.toString();
+        return (QString::compare(leftString, rightString, Qt::CaseInsensitive) < 0);
+    }
 }
 

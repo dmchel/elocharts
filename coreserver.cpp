@@ -14,6 +14,8 @@ CoreServer::CoreServer(QObject *parent) : QObject(parent)
     dataVault = new ProtocolData(this);
 
     connect(dataVault, &ProtocolData::dataArrived, this, &CoreServer::onNewChartData);
+    connect(this, &CoreServer::writeParam, dataVault, &ProtocolData::setParamOnDevice);
+    connect(this, &CoreServer::readParams, dataVault, &ProtocolData::requesetParamsFromDevice);
 
     chartModel = new ChartRecordModel(this);
     connect(chartModel, &ChartRecordModel::dataChanged, this, &CoreServer::onModelDataChange);
@@ -136,6 +138,7 @@ void CoreServer::addParamData(const QJsonObject &data)
     paramData.insert("fShowGraph", false);
     paramData.insert("color", QJsonValue::fromVariant(QVariant((QColor(Qt::blue)))));
     chartModel->addRecord(paramData);
+    paramTimeoutsHash.insert(paramData["id"].toInt(), paramData["period"].toInt());
     writeParamToSettings(paramData);
 }
 
@@ -284,6 +287,7 @@ void CoreServer::readSettings()
                 paramData["color"] = QJsonValue::fromVariant(settings->readValue(group + "/color", QColor("blue")));
                 chartModel->addRecord(paramData);
                 emit sendChartColor(paramData["id"].toInt(), paramData["color"].toVariant().value<QColor>());
+                paramTimeoutsHash.insert(paramData["id"].toInt(), paramData["period"].toInt());
             }
         }
     }
@@ -313,7 +317,11 @@ void CoreServer::writeParamToSettings(const QJsonObject &obj)
     if(obj.isEmpty()) {
         return;
     }
-    QString prefix = "parameter" + QString::number(obj["id"].toInt()) + "/";
+    QString numString = QString::number(obj["id"].toInt());
+    while(numString.size() < 3) {
+        numString.prepend("0");
+    }
+    QString prefix = "parameter" + numString + "/";
     for(auto key : obj.keys()) {
         settings->saveValue(prefix + key, obj[key].toVariant());
     }
@@ -323,7 +331,9 @@ void CoreServer::onNewChartData(const RawData &value)
 {
     if(fRunUpdate) {
         chartModel->updateRecordValue(value.id, value.dot.y());
-        emit chartData(value.id, value.dot.x(), chartModel->recordById(value.id).value);
+        if(chartModel->recordById(value.id).fShowGraph) {
+            emit chartData(value.id, value.dot.x(), chartModel->recordById(value.id).value);
+        }
     }
 }
 
@@ -333,8 +343,21 @@ void CoreServer::onModelDataChange(const QModelIndex &topLeft, const QModelIndex
     if(!topLeft.isValid()) {
         return;
     }
+    //period column
+    if(topLeft.column() == ChartRecordModel::COL_PERIOD) {
+        QModelIndex idIndex = chartModel->index(topLeft.row(), ChartRecordModel::COL_ID);
+        paramTimeoutsHash.insert(idIndex.data().toInt(), topLeft.data().toInt());
+    }
+    //value column
+    if(topLeft.column() == ChartRecordModel::COL_VALUE) {
+        QModelIndex idIndex = chartModel->index(topLeft.row(), ChartRecordModel::COL_ID);
+        QModelIndex rawValIndex = chartModel->index(topLeft.row(), ChartRecordModel::COL_VALUE);
+        emit writeParam(idIndex.data().toInt(), rawValIndex.data().toUInt());
+        //save trigger
+        emit writeParam(16, 1);
+    }
     //color column
-    if(topLeft.column() == 9) {
+    else if(topLeft.column() == 9) {
         QColor graphColor = topLeft.data().value<QColor>();
         QModelIndex idIndex = chartModel->index(topLeft.row(), 0);
         int id = idIndex.data().toInt();
@@ -360,6 +383,64 @@ void CoreServer::checkConnection()
 
 void CoreServer::dataControl()
 {
-
+    //QList<int> queryParamIdList;
+    int queryId = 0;
+    bool fFindSome = false;
+    bool fFindFast = false;
+    //проверяем все доступные параметры модели
+    for(auto &param : chartModel->readAllData()) {
+        if(paramTimeoutsHash.contains(param.id)) {
+            int t = paramTimeoutsHash.value(param.id, 0);
+            t -= REQUEST_DATA_PERIOD_MS;
+            if((param.id == 17) || (param.id == 18) || (param.id == 19)) {
+                if(t <= 0) {
+                    fFindFast = true;
+                    t = param.period;
+                }
+            }
+            else if(!fFindSome) {
+                //пора запросить параметр
+                if(t <= 0) {
+                    t = param.period;
+                    queryId = param.id;
+                    fFindSome = true;
+                }
+            }
+            paramTimeoutsHash.insert(param.id, t);
+        }
+    }
+    //запрашиваем один параметр за раз (кроме параметров 17, 18 и 19 - они запрашиваются одновременно)
+    if(fFindFast) {
+        emit readParams(17, 19);
+    }
+    if(fFindSome) {
+        emit readParams(queryId, 0);
+    }
+    //TODO сделать универсальный алгоритм обновления параметров
+    /*if(!queryParamIdList.isEmpty()) {
+        int start = 0, end = 0;
+        int prevId = 0;
+        for(auto id : queryParamIdList) {
+            if(start == 0) {
+                start = id;
+            }
+            else {
+                if((id - prevId) == 1) {
+                    end = id;
+                }
+                else if((prevId - id) == 1) {
+                    end = start;
+                    start = id;
+                }
+                else {
+                    emit readParams(start, end);
+                    start = 0;
+                    end = 0;
+                }
+            }
+            prevId = id;
+        }
+        emit readParams(start, end);
+    }*/
 }
 
