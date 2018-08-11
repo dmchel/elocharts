@@ -7,15 +7,19 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.8.0.5 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.9.0.0 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication app(argc, argv);
+    app.setApplicationName("ELOCharts");
+    app.setApplicationVersion(progVersion);
+    app.setWindowIcon(QIcon(":/img/img/logo.png"));
 
     Shell shell;
     MainWindow w;
+    w.setApplicationVersion(progVersion);
     ELOPlotter mainPlot;
     mainPlot.start(40);         //25 FPS
     //ELOPlotter additionalPlot;
@@ -59,6 +63,7 @@ int main(int argc, char *argv[])
 
     server.readSettings();
     server.openSerialPort();
+    w.updateTableGeometry();
 
     return app.exec();
 }

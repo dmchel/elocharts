@@ -198,7 +198,7 @@ void ELOPlotter::setDefaultRanges()
     //default range X = 10 sec
     this->xAxis->setRange(0.0, 10000.0);
     //default range Y
-    this->yAxis->setRange(-100.0, 2000.0);
+    this->yAxis->setRange(-100.0, 1500.0);
 }
 
 const QColor &ELOPlotter::nextDefaultColor() const

@@ -39,7 +39,9 @@ signals:
     void sendConnectionStatus(bool flag);
     void connectionInfoChanged(const QString &str);
     void sendConsoleText(const QString &str);
-
+    //to protocol data
+    void writeParam(int id, quint32 val);
+    void readParams(int start_id, int end_id);
     //shell signals
     void sendUartRxData(const QByteArray &data);
     void sendUartTxData(const QByteArray &data);

@@ -11,7 +11,7 @@ class QTimer;
 
 struct RawData {
     int id;
-    QPointF dot;
+    QPoint dot;
 };
 
 /**

@@ -17,11 +17,21 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     varTable = new QTableView(this);
+    varTable->setAutoFillBackground(true);
+    varTable->setEditTriggers(QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed);
+    varTable->setDragEnabled(false);
+    varTable->setDefaultDropAction(Qt::IgnoreAction);
+    varTable->setAlternatingRowColors(true);
+    varTable->setTextElideMode(Qt::ElideMiddle);
+    varTable->setSortingEnabled(true);
+    varTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    varTable->setSelectionBehavior(QAbstractItemView::SelectItems);
+
     connectionStatusLabel = new QLabel(this);
     connectionInfoLabel = new QLabel(this);
     this->statusBar()->addPermanentWidget(connectionStatusLabel);
     this->statusBar()->addPermanentWidget(connectionInfoLabel);
-    //ui->addParamAction->setDisabled(true);
+    ui->addParamAction->setDisabled(true);
     connect(ui->addParamAction, &QAction::triggered, this, &MainWindow::addNewParam);
     console = new Console(this);
     console->setLocalEchoEnabled(true);
@@ -39,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pauseButton, &QPushButton::clicked, this, &MainWindow::pausePlot);
     connect(ui->resetButton, &QPushButton::clicked, this, &MainWindow::resetPlot);
     connect(ui->fitInButton, &QPushButton::clicked, this, &MainWindow::fitInPlots);
+    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
 }
 
 MainWindow::~MainWindow()
@@ -60,8 +72,17 @@ void MainWindow::setChartWidget(QWidget *widget)
 void MainWindow::setTableModel(QAbstractItemModel *model)
 {
     if(model) {
+        //ChartRecordProxyModel *sortModel = new ChartRecordProxyModel(this);
+        //sortModel->setFilterKeyColumn(-1);
+        //sortModel->setDynamicSortFilter(true);
+        //sortModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+        //sortModel->setSourceModel(model);
         varTable->setModel(model);
-        varTable->hideColumn(0);
+        varTable->hideColumn(ChartRecordModel::COL_FACTOR);
+        varTable->hideColumn(ChartRecordModel::COL_SHIFT);
+        varTable->hideColumn(ChartRecordModel::COL_RAW_VALUE);
+        varTable->hideColumn(ChartRecordModel::COL_ACTIVE);
+        varTable->hideColumn(ChartRecordModel::COL_PERIOD);
         ChartRecordModel *chartModel = static_cast<ChartRecordModel*>(model);
         connect(chartModel, &ChartRecordModel::recordChanged, varTable, QOverload<const QModelIndex&>::of(&QTableView::update));
         if(bottomDockWidget != Q_NULLPTR) {
@@ -82,6 +103,11 @@ void MainWindow::setTableDelegate(QAbstractItemDelegate *delegate)
     }
 }
 
+void MainWindow::setApplicationVersion(const QString &str)
+{
+    appVersion = str;
+}
+
 void MainWindow::updateConnectionStatus(bool flag)
 {
     if(flag) {
@@ -100,6 +126,14 @@ void MainWindow::updateConnectionInfo(const QString &str)
 void MainWindow::showStatusMessage(const QString &str)
 {
     this->statusBar()->showMessage(str);
+}
+
+void MainWindow::updateTableGeometry()
+{
+    varTable->resizeColumnsToContents();
+    for(int i = ChartRecordModel::COL_ID; i <= ChartRecordModel::COL_COLOR; i++) {
+        varTable->setColumnWidth(i, varTable->columnWidth(i) + 40);
+    }
 }
 
 void MainWindow::consolePrintText(const QString &str)
@@ -181,4 +215,26 @@ void MainWindow::addNewParam()
             QMessageBox::critical(this, tr("Ошибка"), tr("Произошла ошбика чтения параметра!"), QMessageBox::Ok);
         }
     }
+}
+
+void MainWindow::about()
+{
+    QString aboutStr;
+    aboutStr += "1. Управление параметрами:\n";
+    aboutStr += "Все доступные параметры отображаются в таблице в нижней части окна приложения.\n";
+    aboutStr += "Изменение параметров на устройстве производится путем редактирования данных в таблице.\n";
+    aboutStr += "Для завершения процесса редактирования нажмите клавишу \"Enter\".\n\n";
+
+    aboutStr += "2. Управление графиками:\n";
+    aboutStr += "<Графики> -> <Запустить> Запуск обновления графиков.\n";
+    aboutStr += "<Графики> -> <Остановить> Остановка обновления графиков.\n";
+    aboutStr += "<Графики> -> <Сброс> Удаление всех графиков и сброс счетчика времени.\n";
+    aboutStr += "<Графики> -> <Вписать все графики в экран> Подгонка диапазаона вертикальной оси под значения графиков.\n";
+    aboutStr += "Вышеуказанные действия продублированы кнопками на левой панели.\n\n";
+
+    aboutStr += "Поле графиков масштабируется колесом мыши, по умолчанию масштабируются обе оси.\n";
+    aboutStr += "Возможно масштабирование выбранной оси. Для выбора оси щелкните на нее левой кнопкой мыши.\n";
+    aboutStr += "По умолчанию включен автоскроллинг (прокрутка) графика по обеим осям.\n";
+    aboutStr += "Для ручного скроллина графиков перемещайте мышь с зажатой левой кнопкой по полю графиков.\n";
+    QMessageBox::about(this, tr("ELOCharts ") + appVersion, aboutStr);
 }
