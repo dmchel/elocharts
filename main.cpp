@@ -7,11 +7,13 @@
 #include "coreserver.h"
 #include "shell.h"
 
-const QString progVersion = QString("ver. 0.9.0.0 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
+const QString progVersion = QString("ver. 0.9.0.1 " + QString(__DATE__) + QString(" ") + QString(__TIME__));
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    //масштабирование окна для дисплеев с высокой плотностью пикселей
+    //QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
     QApplication app(argc, argv);
     app.setApplicationName("ELOCharts");
     app.setApplicationVersion(progVersion);

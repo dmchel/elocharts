@@ -12,7 +12,7 @@ ProtocolData::ProtocolData(QObject *parent) : QObject(parent)
     testTimer = new QTimer(this);
     testTimer->setTimerType(Qt::PreciseTimer);
     connect(testTimer, &QTimer::timeout, this, &ProtocolData::onTestTimerTimeout);
-    //testTimer->start(10);
+    testTimer->start(10);
     qsrand(42);
     timestamp = QDateTime::currentMSecsSinceEpoch();
 }
@@ -94,7 +94,7 @@ void ProtocolData::requesetParamsFromDevice(int start_id, int end_id)
         pack.type = SerialPacket::HOST;
         pack.cmd = ProtocolManager::READ_PARAM;
         //нулевое значение идентификатора недопустимо
-        //если конечный id не задан, то запрашиваем только одни параметр
+        //если конечный id не задан, то запрашиваем только один параметр
         if(end_id == 0) {
             //фиксированная длина параметра - 4 байта
             //в пакете - номер страшего байта
@@ -135,6 +135,6 @@ void ProtocolData::onTestTimerTimeout()
         x = 1;
     }
     saveParam(1, t, (qrand() % 1000));
-    saveParam(2, t, 250 * x);
+    saveParam(2, t, 250 * x + 250);
     saveParam(3, t, 125);
 }
